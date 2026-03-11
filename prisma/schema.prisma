@@ -1,0 +1,380 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum TransactionType {
+  income
+  expense
+  transfer
+}
+
+enum CategoryType {
+  income
+  expense
+}
+
+enum AccountGroup {
+  debit
+  credit
+  borrow_lend
+  invest
+  member
+}
+
+enum AccountSubtype {
+  cash
+  debit_card
+  bank_account
+  wallet
+  credit_card
+  loan_given
+  loan_taken
+
+  psx_stock
+  cdc_account
+  mutual_fund_pk
+  national_savings
+  roshan_investment
+  crypto_wallet
+  precious_metal
+  forex_holding
+
+  membership
+  transport_card
+}
+
+enum TransactionStatus {
+  posted
+  pending
+  cancelled
+  failed
+}
+
+enum BudgetPeriod {
+  monthly
+  quarterly
+  yearly
+}
+
+enum InventoryUnit {
+  piece
+  pack
+  bottle
+  tube
+  kg
+  g
+  l
+  ml
+  box
+  bag
+  roll
+  tray
+  can
+  jar
+}
+
+enum InventoryItemType {
+  consumable
+  durable
+}
+
+enum InventoryConsumptionSource {
+  manual
+  forecast_adjustment
+  auto_deduction
+}
+
+enum InventoryPurchaseSource {
+  manual
+  imported
+}
+
+model User {
+  id               String   @id @default(cuid())
+  name             String
+  email            String   @unique
+  passwordHash     String
+  baseCurrencyCode String   @default("QAR")
+  timezone         String   @default("Asia/Qatar")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  accounts            Account[]
+  categories          Category[]
+  transactions        Transaction[]
+  budgets             Budget[]
+  inventoryCategories InventoryCategory[]
+  inventoryItems      InventoryItem[]
+  inventoryPurchases  InventoryPurchase[]
+  inventoryUsageLogs  InventoryConsumption[]
+}
+
+model Account {
+  id           String         @id @default(cuid())
+  userId       String
+  name         String
+  note         String?
+  group        AccountGroup
+  subtype      AccountSubtype
+  currencyCode String
+  iconKey      String?
+  balance      Decimal?       @db.Decimal(18, 2)
+  chartColor   String?
+  countInAsset Boolean        @default(true)
+  hideBalance  Boolean        @default(false)
+  details      Json?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  user              User          @relation(fields: [userId], references: [id])
+  transactions      Transaction[]
+  incomingTransfers Transaction[] @relation("TransferAccount")
+  budgets           Budget[]
+}
+
+model ExchangeRate {
+  id            String   @id @default(cuid())
+  baseCurrency  String
+  quoteCurrency String
+  rateDate      DateTime
+  rate          Decimal  @db.Decimal(18, 8)
+  source        String
+  fetchedAt     DateTime @default(now())
+
+  @@unique([baseCurrency, quoteCurrency, rateDate, source])
+  @@index([rateDate])
+  @@index([baseCurrency, quoteCurrency])
+}
+
+model Category {
+  id        String       @id @default(cuid())
+  userId    String
+  name      String
+  type      CategoryType
+  iconKey   String?
+  colorHex  String?
+  sortOrder Int          @default(0)
+  isSystem  Boolean      @default(false)
+  isActive  Boolean      @default(true)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subcategories Subcategory[]
+  transactions  Transaction[]
+  budgets       Budget[]
+
+  @@unique([userId, name, type])
+  @@index([userId])
+  @@index([type])
+}
+
+model Subcategory {
+  id         String   @id @default(cuid())
+  categoryId String
+  name       String
+  iconKey    String?
+  colorHex   String?
+  sortOrder  Int      @default(0)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  category     Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  budgets      Budget[]
+
+  @@unique([categoryId, name])
+  @@index([categoryId])
+}
+
+model Transaction {
+  id                String            @id @default(cuid())
+  userId            String
+  accountId         String
+  transferAccountId String?
+  categoryId        String?
+  subcategoryId     String?
+  type              TransactionType
+  status            TransactionStatus @default(posted)
+  amount            Decimal           @db.Decimal(12, 2)
+  currencyCode      String?
+  exchangeRate      Decimal?          @db.Decimal(18, 8)
+  baseAmount        Decimal?          @db.Decimal(12, 2)
+  transactionDate   DateTime
+  paymentMethod     String?
+  merchant          String?
+  referenceNumber   String?
+  externalReference String?
+  note              String?
+  location          String?
+  isRecurring       Boolean           @default(false)
+  recurringGroupKey String?
+  transferGroupId   String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account         Account      @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  transferAccount Account?     @relation("TransferAccount", fields: [transferAccountId], references: [id], onDelete: SetNull)
+  category        Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  subcategory     Subcategory? @relation(fields: [subcategoryId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([accountId])
+  @@index([transferAccountId])
+  @@index([categoryId])
+  @@index([subcategoryId])
+  @@index([transactionDate])
+  @@index([type, status])
+  @@index([transferGroupId])
+  @@index([recurringGroupKey])
+}
+
+model Budget {
+  id                    String       @id @default(cuid())
+  userId                String
+  accountId             String?
+  categoryId            String
+  subcategoryId         String?
+  period                BudgetPeriod @default(monthly)
+  month                 Int?
+  quarter               Int?
+  year                  Int
+  amount                Decimal      @db.Decimal(12, 2)
+  spentAmount           Decimal?     @db.Decimal(12, 2)
+  alertThresholdPercent Int?         @default(80)
+  note                  String?
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account     Account?     @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  category    Category     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  subcategory Subcategory? @relation(fields: [subcategoryId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, accountId, categoryId, subcategoryId, period, month, quarter, year])
+  @@index([userId])
+  @@index([categoryId])
+  @@index([subcategoryId])
+  @@index([year, month])
+}
+
+model InventoryCategory {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  iconKey   String?
+  colorHex  String?
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items InventoryItem[]
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model InventoryItem {
+  id                     String            @id @default(cuid())
+  userId                 String
+  categoryId             String
+  name                   String
+  brand                  String?
+  sku                    String?
+  barcode                String?
+  itemType               InventoryItemType @default(consumable)
+  unit                   InventoryUnit
+  currentQuantity        Decimal           @db.Decimal(12, 3)
+  minQuantity            Decimal           @db.Decimal(12, 3)
+  maxQuantity            Decimal?          @db.Decimal(12, 3)
+  reorderQuantity        Decimal?          @db.Decimal(12, 3)
+  preferredCurrencyCode  String            @default("QAR")
+  averageUnitCost        Decimal?          @db.Decimal(12, 3)
+  lastUnitCost           Decimal?          @db.Decimal(12, 3)
+  estimatedDailyUsage    Decimal?          @db.Decimal(12, 3)
+  estimatedDaysRemaining Int?
+  lastPurchaseDate       DateTime?
+  lastConsumptionDate    DateTime?
+  nextRestockDate        DateTime?
+  expiryDate             DateTime?
+  storageLocation        String?
+  notes                  String?
+  iconKey                String?
+  sortOrder              Int               @default(0)
+  lowStockAlertEnabled   Boolean           @default(true)
+  expiryAlertEnabled     Boolean           @default(true)
+  isActive               Boolean           @default(true)
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+
+  user         User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category     InventoryCategory      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  purchases    InventoryPurchase[]
+  consumptions InventoryConsumption[]
+
+  @@unique([userId, categoryId, name])
+  @@index([userId])
+  @@index([categoryId])
+  @@index([name])
+  @@index([isActive])
+  @@index([nextRestockDate])
+  @@index([expiryDate])
+}
+
+model InventoryPurchase {
+  id             String                  @id @default(cuid())
+  userId         String
+  itemId         String
+  source         InventoryPurchaseSource @default(manual)
+  quantity       Decimal                 @db.Decimal(12, 3)
+  unitPrice      Decimal?                @db.Decimal(12, 3)
+  totalPrice     Decimal?                @db.Decimal(12, 3)
+  currencyCode   String                  @default("QAR")
+  exchangeRate   Decimal?                @db.Decimal(18, 8)
+  baseTotalPrice Decimal?                @db.Decimal(12, 3)
+  purchaseDate   DateTime
+  storeName      String?
+  invoiceNumber  String?
+  note           String?
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([itemId])
+  @@index([purchaseDate])
+  @@index([storeName])
+}
+
+model InventoryConsumption {
+  id           String                     @id @default(cuid())
+  userId       String
+  itemId       String
+  source       InventoryConsumptionSource @default(manual)
+  quantityUsed Decimal                    @db.Decimal(12, 3)
+  usageDate    DateTime
+  usedBy       String?
+  context      String?
+  note         String?
+  createdAt    DateTime                   @default(now())
+  updatedAt    DateTime                   @updatedAt
+
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([itemId])
+  @@index([usageDate])
+  @@index([source])
+}
