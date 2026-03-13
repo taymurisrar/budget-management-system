@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   ArrowRightLeft,
@@ -26,8 +27,16 @@ const navItems = [
 ];
 
 export default function Sidebar() {
+  const router = useRouter();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    setMobileOpen(false);
+    router.push("/");
+    router.refresh();
+  }
 
   function isItemActive(href: string) {
     return pathname === href || pathname.startsWith(`${href}/`);
@@ -98,10 +107,10 @@ export default function Sidebar() {
         </nav>
 
         <div className="app-sidebar__footer">
-          <Link href="/" className="app-sidebar__logout" onClick={() => setMobileOpen(false)}>
+          <button type="button" className="app-sidebar__logout" onClick={() => void handleLogout()}>
             <LogOut className="h-4 w-4" />
             <span>Logout</span>
-          </Link>
+          </button>
         </div>
       </div>
     </aside>

@@ -302,6 +302,32 @@ export async function updateTransactionCategoryService(
   id: string,
   input: Partial<TransactionCategoryInput>
 ) {
+  const existingCategory = await prisma.category.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      userId: true,
+      name: true,
+    },
+  });
+
+  if (!existingCategory) {
+    throw new Error("Category not found");
+  }
+
+  const nextName = input.name ?? existingCategory.name;
+  if (nextName !== existingCategory.name) {
+    await prisma.inventoryCategory.updateMany({
+      where: {
+        userId: existingCategory.userId,
+        name: existingCategory.name,
+      },
+      data: {
+        name: nextName,
+      },
+    });
+  }
+
   return prisma.category.update({
     where: { id },
     data: {

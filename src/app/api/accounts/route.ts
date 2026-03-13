@@ -2,10 +2,16 @@ import { createAccountSchema } from "@/features/accounts/validations/account.sch
 import { createAccountService } from "@/features/accounts/services/accounts.service";
 import { findAllAccounts } from "@/features/accounts/repository/accounts.repository";
 import { NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/auth/current-user";
 
 export async function GET() {
   try {
-    const accounts = await findAllAccounts();
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const accounts = await findAllAccounts(user.id);
     return NextResponse.json(accounts);
   } catch (error) {
     console.error("Fetch accounts error:", error);
@@ -19,8 +25,16 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
-    const parsed = createAccountSchema.safeParse(body);
+    const parsed = createAccountSchema.safeParse({
+      ...body,
+      userId: user.id,
+    });
 
     if (!parsed.success) {
       return NextResponse.json(

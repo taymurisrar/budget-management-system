@@ -1,8 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@/generated/prisma/client";
 
-export async function findAllInventoryItems() {
+export async function findAllInventoryItems(userId: string) {
   return prisma.inventoryItem.findMany({
+    where: { userId },
     include: {
       category: true,
       revisions: {
@@ -56,6 +57,24 @@ export async function findInventoryItemByName({
       revisions: {
         orderBy: { createdAt: "desc" },
         take: 20,
+      },
+    },
+  });
+}
+
+export async function findInventoryCategoryByName({
+  userId,
+  name,
+}: {
+  userId: string;
+  name: string;
+}) {
+  return prisma.inventoryCategory.findFirst({
+    where: {
+      userId,
+      name: {
+        equals: name.trim(),
+        mode: "insensitive",
       },
     },
   });

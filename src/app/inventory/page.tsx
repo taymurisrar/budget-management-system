@@ -1,10 +1,13 @@
 import Link from "next/link";
 import InventoryManagementClient from "@/features/inventory/components/inventory-management-client";
 import { prisma } from "@/lib/prisma";
+import { requireCurrentUser } from "@/lib/auth/current-user";
 
 export default async function InventoryPage() {
-  const [items, categories] = await Promise.all([
+  const user = await requireCurrentUser();
+  const [items, globalCategories] = await Promise.all([
     prisma.inventoryItem.findMany({
+      where: { userId: user.id },
       include: {
         category: true,
         revisions: {
@@ -14,20 +17,26 @@ export default async function InventoryPage() {
       },
       orderBy: { createdAt: "asc" },
     }),
-    prisma.inventoryCategory.findMany({
-      select: {
-        id: true,
-        name: true,
-        iconKey: true,
+    prisma.category.findMany({
+      where: {
+        userId: user.id,
+        type: "expense",
       },
-      orderBy: { name: "asc" },
+      include: {
+        subcategories: {
+          orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+        },
+      },
+      orderBy: [{ type: "asc" }, { sortOrder: "asc" }, { name: "asc" }],
     }),
   ]);
+
+  const globalCategoryIdByName = new Map(globalCategories.map((category) => [category.name, category.id]));
 
   const initialItems = items.map((item) => ({
     id: item.id,
     userId: item.userId,
-    categoryId: item.categoryId,
+    categoryId: globalCategoryIdByName.get(item.category.name) ?? item.categoryId,
     categoryName: item.category.name,
     name: item.name,
     brand: item.brand,
@@ -85,14 +94,22 @@ export default async function InventoryPage() {
 
         <Link
           href="/inventory/new"
-          className="rounded-2xl bg-black px-4 py-2.5 text-white shadow-lg dark:bg-white dark:text-black"
+          className="rounded-2xl !bg-slate-950 px-4 py-2.5 !text-white shadow-lg dark:!bg-sky-100 dark:!text-slate-950"
         >
           Add Item
         </Link>
       </div>
 
       <div className="mt-8">
-        <InventoryManagementClient initialItems={initialItems} categories={categories} />
+        <InventoryManagementClient
+          initialItems={initialItems}
+          categories={globalCategories.map((category) => ({
+            id: category.id,
+            name: category.name,
+            iconKey: category.iconKey,
+            subcategories: category.subcategories.map((subcategory) => subcategory.name),
+          }))}
+        />
       </div>
     </div>
   );

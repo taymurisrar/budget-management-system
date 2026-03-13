@@ -3,6 +3,7 @@ import { Prisma } from "@/generated/prisma/client";
 import { createInventoryItemSchema } from "@/features/inventory/validations/inventory-item.schema";
 import { createInventoryItemService } from "@/features/inventory/services/inventory.service";
 import { findAllInventoryItems } from "@/features/inventory/repository/inventory.repository";
+import { getCurrentUser } from "@/lib/auth/current-user";
 
 function inventoryErrorResponse(error: unknown) {
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -36,7 +37,12 @@ function inventoryErrorResponse(error: unknown) {
 
 export async function GET() {
   try {
-    const items = await findAllInventoryItems();
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const items = await findAllInventoryItems(user.id);
     return NextResponse.json(items);
   } catch (error) {
     console.error("Fetch inventory items error:", error);
@@ -50,8 +56,16 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
-    const parsed = createInventoryItemSchema.safeParse(body);
+    const parsed = createInventoryItemSchema.safeParse({
+      ...body,
+      userId: user.id,
+    });
 
     if (!parsed.success) {
       return NextResponse.json(

@@ -1,49 +1,19 @@
 import { prisma } from "@/lib/prisma";
 import CreateInventoryItemForm from "@/features/inventory/components/create-inventory-item-form";
-//import CreateInventoryItemForm from "@/features/inventory/components/create-inventory-item-form";
 import { Boxes, PackageSearch } from "lucide-react";
+import { requireCurrentUser } from "@/lib/auth/current-user";
 
 export default async function NewInventoryPage() {
-  const user = await prisma.user.findFirst({
-    orderBy: { createdAt: "asc" },
-  });
+  const user = await requireCurrentUser();
 
-  if (!user) {
-    return (
-      <div className="app-shell py-8">
-        <div className="glass-card overflow-hidden">
-          <div className="border-b border-[var(--border)] px-6 py-5">
-            <div className="flex items-start gap-3">
-              <div className="rounded-2xl bg-black/90 p-3 text-white dark:bg-white dark:text-black">
-                <Boxes className="h-5 w-5" />
-              </div>
-
-              <div>
-                <h1 className="page-title">New Inventory Item</h1>
-                <p className="text-muted mt-2">
-                  Create and track household items with quantity and restock intelligence.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="px-6 py-10">
-            <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
-              No user found in database. Seed or create a user first before adding inventory items.
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const categories = await prisma.inventoryCategory.findMany({
-    select: {
-      id: true,
-      name: true,
-      iconKey: true,
+  const categories = await prisma.category.findMany({
+    where: { userId: user.id },
+    include: {
+      subcategories: {
+        orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+      },
     },
-    orderBy: { name: "asc" },
+    orderBy: [{ type: "asc" }, { sortOrder: "asc" }, { name: "asc" }],
   });
 
   if (categories.length === 0) {
@@ -71,10 +41,9 @@ export default async function NewInventoryPage() {
                 <PackageSearch className="h-7 w-7" />
               </div>
 
-              <h2 className="section-title mt-5">No inventory categories found</h2>
+              <h2 className="section-title mt-5">No global categories found</h2>
               <p className="text-muted mt-2 max-w-xl text-sm">
-                Add or seed inventory categories first, such as Personal Care, Cleaning,
-                Groceries, Pet Supplies, or Medicine, then come back and create items.
+                Add categories and subcategories in Settings first, then come back and create inventory items from the shared taxonomy.
               </p>
             </div>
           </div>

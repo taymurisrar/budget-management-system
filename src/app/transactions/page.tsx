@@ -1,8 +1,11 @@
 import TransactionManagementClient from "@/features/transactions/components/transaction-management-client";
 import { prisma } from "@/lib/prisma";
+import { requireCurrentUser } from "@/lib/auth/current-user";
 
 export default async function TransactionsPage() {
+  const user = await requireCurrentUser();
   const transactions = await prisma.transaction.findMany({
+    where: { userId: user.id },
     include: {
       account: true,
       transferAccount: true,

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import CreateTransactionForm from "@/features/transactions/components/create-transaction-form";
 import { prisma } from "@/lib/prisma";
+import { requireCurrentUser } from "@/lib/auth/current-user";
 
 type PageContext = {
   params: Promise<{
@@ -10,17 +11,11 @@ type PageContext = {
 
 export default async function EditTransactionPage(context: PageContext) {
   const { transactionId } = await context.params;
-
-  const user = await prisma.user.findFirst({
-    orderBy: { createdAt: "asc" },
-  });
-
-  if (!user) {
-    notFound();
-  }
+  const user = await requireCurrentUser();
 
   const [accounts, categories, transaction] = await Promise.all([
     prisma.account.findMany({
+      where: { userId: user.id },
       select: {
         id: true,
         name: true,
@@ -30,6 +25,7 @@ export default async function EditTransactionPage(context: PageContext) {
       orderBy: { createdAt: "asc" },
     }),
     prisma.category.findMany({
+      where: { userId: user.id },
       include: {
         subcategories: {
           orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
@@ -37,8 +33,8 @@ export default async function EditTransactionPage(context: PageContext) {
       },
       orderBy: [{ type: "asc" }, { sortOrder: "asc" }, { name: "asc" }],
     }),
-    prisma.transaction.findUnique({
-      where: { id: transactionId },
+    prisma.transaction.findFirst({
+      where: { id: transactionId, userId: user.id },
     }),
   ]);
 

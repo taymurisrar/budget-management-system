@@ -1,3 +1,5 @@
+import { formatDateWithPreferences } from "@/lib/date-formatting";
+
 type QuantityLike = {
   currentQuantity?: number | null | undefined;
   inUseQuantity?: number | null | undefined;
@@ -86,7 +88,7 @@ export function getEstimatedDaysRemaining(item: QuantityLike) {
 
 export function formatInventoryDate(value: string | Date | null | undefined) {
   const parsed = toDate(value);
-  return parsed ? parsed.toLocaleDateString() : "N/A";
+  return parsed ? formatDateWithPreferences(parsed) : "N/A";
 }
 
 export function toDateInputValue(value: string | Date | null | undefined) {

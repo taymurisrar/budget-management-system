@@ -1,8 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@/generated/prisma/client";
 
-export async function findAllAccounts() {
+export async function findAllAccounts(userId: string) {
   return prisma.account.findMany({
+    where: { userId },
     orderBy: { createdAt: "asc" },
   });
 }

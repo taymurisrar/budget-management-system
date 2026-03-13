@@ -20,8 +20,9 @@ export const transactionCategoryInclude = {
   },
 } satisfies Prisma.CategoryInclude;
 
-export async function findAllTransactions() {
+export async function findAllTransactions(userId: string) {
   return prisma.transaction.findMany({
+    where: { userId },
     include: transactionInclude,
     orderBy: [{ transactionDate: "desc" }, { createdAt: "desc" }],
   });

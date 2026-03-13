@@ -1,5 +1,6 @@
+import LocalizedDateText from "@/components/localized-date-text";
 import type { GroceryListItem, InventoryPrediction } from "@/features/dashboard/services/dashboard.service";
-import { formatDate, statusPill } from "@/features/dashboard/components/dashboard-helpers";
+import { statusPill } from "@/features/dashboard/components/dashboard-helpers";
 
 type DashboardRestockPanelProps = {
   groceryList: GroceryListItem[];
@@ -68,7 +69,11 @@ export function DashboardRestockPanel({
               <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
                 {item.estimatedDaysRemaining != null
                   ? `${item.estimatedDaysRemaining} days remaining`
-                  : `Restock by ${formatDate(item.nextRestockDate)}`}
+                  : (
+                    <>
+                      Restock by <LocalizedDateText value={item.nextRestockDate} emptyText="Not set" />
+                    </>
+                  )}
               </p>
             </article>
           ))
@@ -83,7 +88,11 @@ export function DashboardRestockPanel({
               <div>
                 <p className="text-sm font-medium text-slate-950 dark:text-white">{item.name}</p>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  {item.daysRemaining != null ? `${item.daysRemaining} days left` : formatDate(item.suggestedRestockDate)}
+                  {item.daysRemaining != null ? (
+                    `${item.daysRemaining} days left`
+                  ) : (
+                    <LocalizedDateText value={item.suggestedRestockDate} emptyText="Not set" />
+                  )}
                 </p>
               </div>
               <span className={`rounded-full px-3 py-1 text-xs font-medium ${statusPill(item.stockStatus)}`}>

@@ -80,9 +80,11 @@ function IconPreview({ iconKey }: { iconKey: string | null | undefined }) {
 export default function TransactionCategoryManagementClient({
   userId,
   initialCategories,
+  embedded = false,
 }: {
   userId: string;
   initialCategories: CategoryRecord[];
+  embedded?: boolean;
 }) {
   const [categories, setCategories] = useState(initialCategories);
   const [categoryForm, setCategoryForm] = useState<CategoryFormState>(emptyCategoryForm);
@@ -457,16 +459,18 @@ export default function TransactionCategoryManagementClient({
   }
 
   return (
-    <div className="app-shell py-8">
+    <div className={embedded ? "" : "app-shell py-8"}>
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <Link href="/transactions" className="inline-flex items-center gap-2 text-sm text-slate-500">
-            <ArrowLeft className="h-4 w-4" />
-            Back to Transactions
-          </Link>
-          <h1 className="page-title mt-3">Transaction Categories</h1>
+          {!embedded ? (
+            <Link href="/transactions" className="inline-flex items-center gap-2 text-sm text-slate-500">
+              <ArrowLeft className="h-4 w-4" />
+              Back to Transactions
+            </Link>
+          ) : null}
+          <h1 className={`page-title ${embedded ? "" : "mt-3"}`}>Global Categories</h1>
           <p className="text-muted mt-2">
-            Maintain income and expense categories separately, then attach subcategories under each one.
+            Manage one shared category and subcategory taxonomy for transactions, accounts, and inventory.
           </p>
         </div>
       </div>

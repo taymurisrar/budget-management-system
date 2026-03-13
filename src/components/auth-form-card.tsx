@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { KeyRound, ShieldCheck } from "lucide-react";
+import { useState } from "react";
+import { ArrowRight, KeyRound, MailCheck, ShieldCheck } from "lucide-react";
 
 type AuthMode = "login" | "signup" | "reset";
 
@@ -22,67 +23,165 @@ export default function AuthFormCard({
   const router = useRouter();
   const isReset = mode === "reset";
   const isSignup = mode === "signup";
+  const isLogin = mode === "login";
+  const [serverMessage, setServerMessage] = useState("");
+  const [messageTone, setMessageTone] = useState<"neutral" | "success" | "error">("neutral");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    router.push("/dashboard");
+    setServerMessage("");
+    setMessageTone("neutral");
+    const form = event.currentTarget;
+
+    const formData = new FormData(form);
+    const payload = Object.fromEntries(formData.entries());
+
+    if (isReset) {
+      setServerMessage("Password reset is not configured yet.");
+      setMessageTone("neutral");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(isSignup ? "/api/auth/signup" : "/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+      const result = (await response.json()) as { message?: string };
+
+      if (!response.ok) {
+        setServerMessage(result.message ?? "Request failed");
+        setMessageTone("error");
+        return;
+      }
+
+      if (isSignup) {
+        setServerMessage(result.message ?? "Account created. You can sign in now.");
+        setMessageTone("success");
+        form.reset();
+        return;
+      }
+
+      router.push("/dashboard");
+      router.refresh();
+    } finally {
+      setIsSubmitting(false);
+    }
   }
+
+  const featureIcon = isReset ? KeyRound : isSignup ? MailCheck : ShieldCheck;
+  const FeatureIcon = featureIcon;
+  const featureTitle = isReset
+    ? "Password recovery"
+    : isSignup
+    ? "Create a verified account"
+    : "Secure sign in";
+  const featureText = isReset
+    ? "Keep the flow minimal. Enter your email and the reset path can be connected later."
+    : isSignup
+    ? "In development, new accounts are activated immediately. In production, email confirmation is required."
+    : "Use your email and password to access your workspace with a server-backed session.";
 
   return (
     <section className="auth-card-shell">
       <div className="auth-card">
-        <div className="auth-card__intro">
-          <span className="auth-card__eyebrow">{eyebrow}</span>
+        <div className="auth-card__panel auth-card__panel--hero">
+          <div className="auth-card__hero-badge">{eyebrow}</div>
           <h1 className="auth-card__title">{title}</h1>
           <p className="auth-card__description">{description}</p>
+
+          <div className="auth-card__feature">
+            <div className="auth-card__feature-icon">
+              <FeatureIcon className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="auth-card__feature-title">{featureTitle}</p>
+              <p className="auth-card__feature-text">{featureText}</p>
+            </div>
+          </div>
+
+          <div className="auth-card__metrics">
+            <div className="auth-card__metric">
+              <span className="auth-card__metric-label">Access</span>
+              <span className="auth-card__metric-value">Private workspace</span>
+            </div>
+            <div className="auth-card__metric">
+              <span className="auth-card__metric-label">Session</span>
+              <span className="auth-card__metric-value">Server cookie</span>
+            </div>
+          </div>
         </div>
 
-        <div className="auth-card__feature">
-          <div className="rounded-2xl bg-white/14 p-3 text-white">
-            {isReset ? <KeyRound className="h-5 w-5" /> : <ShieldCheck className="h-5 w-5" />}
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-white">Secure workspace access</p>
-            <p className="mt-1 text-sm leading-6 text-sky-100/80">
-              This is a front-end auth flow placeholder. Submitting any form enters the dashboard for now.
+        <div className="auth-card__panel auth-card__panel--form">
+          <div className="auth-card__form-header">
+            <p className="auth-card__form-title">
+              {isReset ? "Reset access" : isSignup ? "Create account" : "Welcome back"}
+            </p>
+            <p className="auth-card__form-copy">
+              {isReset
+                ? "Use the email attached to your account."
+                : isSignup
+                ? "Start with the minimum details."
+                : "Sign in with the credentials for this workspace."}
             </p>
           </div>
-        </div>
 
-        <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
-          <label className="auth-field">
-            <span>{isReset ? "Username or email" : "Username"}</span>
-            <input
-              type={isReset ? "email" : "text"}
-              name="username"
-              placeholder={isReset ? "you@example.com" : "Enter your username"}
-              required
-            />
-          </label>
+          <form className="auth-form" onSubmit={handleSubmit}>
+            {isSignup ? (
+              <label className="auth-field">
+                <span>Full name</span>
+                <input type="text" name="name" placeholder="Enter your full name" required />
+              </label>
+            ) : null}
 
-          {!isReset ? (
             <label className="auth-field">
-              <span>Password</span>
-              <input type="password" name="password" placeholder="Enter your password" required />
+              <span>Email</span>
+              <input type="email" name="email" placeholder="you@example.com" required />
             </label>
-          ) : null}
 
-          {isSignup ? (
-            <label className="auth-field">
-              <span>Confirm password</span>
-              <input type="password" name="confirmPassword" placeholder="Repeat your password" required />
-            </label>
-          ) : null}
+            {isSignup || isLogin ? (
+              <label className="auth-field">
+                <span>Password</span>
+                <input type="password" name="password" placeholder="Enter your password" required />
+              </label>
+            ) : null}
 
-          <button type="submit" className="auth-submit">
-            {isReset ? "Send reset link" : isSignup ? "Create account" : "Login"}
-          </button>
-        </form>
+            {isSignup ? (
+              <label className="auth-field">
+                <span>Confirm password</span>
+                <input type="password" name="confirmPassword" placeholder="Repeat your password" required />
+              </label>
+            ) : null}
 
-        <div className="mt-6 flex flex-wrap gap-3 text-sm text-slate-500 dark:text-slate-300">
-          {mode !== "login" ? <Link href="/">Back to login</Link> : null}
-          {mode === "login" ? <Link href="/signup">Create account</Link> : null}
-          {mode === "login" ? <Link href="/reset-password">Reset password</Link> : null}
+            {serverMessage ? (
+              <div className={`auth-message auth-message--${messageTone}`}>{serverMessage}</div>
+            ) : null}
+
+            <button type="submit" className="auth-submit">
+              <span>
+                {isSubmitting
+                  ? "Please wait..."
+                  : isReset
+                  ? "Send reset link"
+                  : isSignup
+                  ? "Create account"
+                  : "Sign in"}
+              </span>
+              {!isSubmitting ? <ArrowRight className="h-4 w-4" /> : null}
+            </button>
+          </form>
+
+          <div className="auth-links">
+            {mode !== "login" ? <Link href="/">Back to login</Link> : null}
+            {mode === "login" ? <Link href="/signup">Create account</Link> : null}
+            {mode === "login" ? <Link href="/reset-password">Reset password</Link> : null}
+          </div>
         </div>
       </div>
     </section>

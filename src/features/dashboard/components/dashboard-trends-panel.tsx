@@ -1,5 +1,7 @@
+import { useEffect, useState } from "react";
 import type { TrendPoint } from "@/features/dashboard/services/dashboard.service";
 import { chartPath, compactNumber } from "@/features/dashboard/components/dashboard-helpers";
+import { formatTimeWithPreferences } from "@/lib/date-formatting";
 
 type DashboardTrendsPanelProps = {
   trends: TrendPoint[];
@@ -16,7 +18,13 @@ export function DashboardTrendsPanel({
   isRefreshing,
   onRefresh,
 }: DashboardTrendsPanelProps) {
+  const [hydratedTime, setHydratedTime] = useState("");
   const trendValues = trends.flatMap((trend) => [trend.income, trend.expense]);
+  const fallbackTime = generatedAt.slice(11, 16);
+
+  useEffect(() => {
+    setHydratedTime(formatTimeWithPreferences(generatedAt));
+  }, [generatedAt]);
 
   return (
     <section className="rounded-[28px] border border-slate-200/70 bg-white/85 p-6 shadow-sm dark:border-slate-700/60 dark:bg-slate-900/65">
@@ -29,7 +37,8 @@ export function DashboardTrendsPanel({
             Income and expense direction
           </h2>
           <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-            Updates every 30 seconds. Last sync {new Date(generatedAt).toLocaleTimeString()}.
+            Updates every 30 seconds. Last sync{" "}
+            <span suppressHydrationWarning>{hydratedTime || fallbackTime}</span>.
           </p>
         </div>
 

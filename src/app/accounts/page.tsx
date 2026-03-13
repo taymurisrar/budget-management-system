@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { accountIconMap } from "@/features/accounts/account-icons";
+import { requireCurrentUser } from "@/lib/auth/current-user";
 
 export default async function AccountsPage() {
+  const user = await requireCurrentUser();
   const accounts = await prisma.account.findMany({
+    where: { userId: user.id },
     orderBy: { createdAt: "asc" },
   });
 
@@ -46,6 +49,13 @@ export default async function AccountsPage() {
                     <span className="rounded-full bg-blue-50 px-2.5 py-1 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">
                       {account.subtype}
                     </span>
+                    {typeof account.details === "object" &&
+                    account.details !== null &&
+                    "categoryId" in account.details ? (
+                      <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
+                        Categorized
+                      </span>
+                    ) : null}
                   </div>
                 </div>
               </div>

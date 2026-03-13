@@ -241,6 +241,113 @@ select {
   backdrop-filter: blur(12px);
 }
 
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"] {
+  color-scheme: light;
+  min-height: 3rem;
+  padding-right: 3rem;
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(248, 250, 252, 0.72)),
+    radial-gradient(circle at top right, rgba(14, 165, 233, 0.1), transparent 36%);
+  background-origin: border-box;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  margin-right: 0.15rem;
+  cursor: pointer;
+  opacity: 0.82;
+  filter: brightness(0) saturate(100%) invert(15%) sepia(18%) saturate(1246%) hue-rotate(182deg)
+    brightness(94%) contrast(94%);
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  transform: scale(1.04);
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease,
+    filter 0.2s ease;
+  cursor: pointer;
+}
+
+input[type="date"]::-webkit-datetime-edit,
+input[type="time"]::-webkit-datetime-edit,
+input[type="datetime-local"]::-webkit-datetime-edit {
+  color: var(--foreground);
+}
+
+input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+input[type="time"]::-webkit-datetime-edit-fields-wrapper,
+input[type="datetime-local"]::-webkit-datetime-edit-fields-wrapper {
+  padding: 0;
+}
+
+input[type="date"]::-webkit-date-and-time-value,
+input[type="time"]::-webkit-date-and-time-value,
+input[type="datetime-local"]::-webkit-date-and-time-value {
+  text-align: left;
+}
+
+input[type="date"]::-webkit-datetime-edit-year-field:focus,
+input[type="date"]::-webkit-datetime-edit-month-field:focus,
+input[type="date"]::-webkit-datetime-edit-day-field:focus,
+input[type="time"]::-webkit-datetime-edit-hour-field:focus,
+input[type="time"]::-webkit-datetime-edit-minute-field:focus,
+input[type="datetime-local"]::-webkit-datetime-edit-year-field:focus,
+input[type="datetime-local"]::-webkit-datetime-edit-month-field:focus,
+input[type="datetime-local"]::-webkit-datetime-edit-day-field:focus,
+input[type="datetime-local"]::-webkit-datetime-edit-hour-field:focus,
+input[type="datetime-local"]::-webkit-datetime-edit-minute-field:focus,
+input[type="datetime-local"]::-webkit-datetime-edit-ampm-field:focus {
+  border-radius: 8px;
+  background: rgba(59, 130, 246, 0.16);
+  color: var(--foreground);
+}
+
+:root[data-theme="dark"] input[type="date"],
+:root[data-theme="dark"] input[type="time"],
+:root[data-theme="dark"] input[type="datetime-local"] {
+  color-scheme: dark;
+  background-image:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.68)),
+    radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 40%);
+}
+
+:root[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,
+:root[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator,
+:root[data-theme="dark"] input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: brightness(0) saturate(100%) invert(88%) sepia(10%) saturate(1072%) hue-rotate(172deg)
+    brightness(104%) contrast(96%);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) input[type="date"],
+  :root:not([data-theme="light"]) input[type="time"],
+  :root:not([data-theme="light"]) input[type="datetime-local"] {
+    color-scheme: dark;
+    background-image:
+      linear-gradient(180deg, rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.68)),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 40%);
+  }
+
+  :root:not([data-theme="light"]) input[type="date"]::-webkit-calendar-picker-indicator,
+  :root:not([data-theme="light"]) input[type="time"]::-webkit-calendar-picker-indicator,
+  :root:not([data-theme="light"]) input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    filter: brightness(0) saturate(100%) invert(88%) sepia(10%) saturate(1072%) hue-rotate(172deg)
+      brightness(104%) contrast(96%);
+  }
+}
+
 input::placeholder,
 textarea::placeholder {
   color: var(--muted-foreground);
@@ -714,60 +821,152 @@ hr {
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
+  background:
+    radial-gradient(circle at top left, rgba(14, 165, 233, 0.18), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(15, 23, 42, 0.16), transparent 32%);
 }
 
 .auth-card-shell {
   width: 100%;
-  max-width: 1120px;
+  max-width: 1100px;
 }
 
 .auth-card {
   display: grid;
-  gap: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  border-radius: 32px;
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(238, 242, 255, 0.88)),
-    white;
+  gap: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 34px;
+  background: rgba(255, 255, 255, 0.78);
+  padding: 1rem;
+  backdrop-filter: blur(22px);
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.12);
+}
+
+.auth-card__panel {
+  border-radius: 28px;
   padding: 1.5rem;
-  box-shadow: var(--shadow-lg);
 }
 
-.auth-card__intro {
-  max-width: 38rem;
+.auth-card__panel--hero {
+  background:
+    linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(12, 74, 110, 0.88)),
+    #0f172a;
+  color: white;
 }
 
-.auth-card__eyebrow {
+.auth-card__panel--form {
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.auth-card__hero-badge {
   display: inline-flex;
   border-radius: 999px;
-  background: rgba(14, 165, 233, 0.1);
-  padding: 0.5rem 0.85rem;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.45rem 0.8rem;
   font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: #0369a1;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .auth-card__title {
   margin-top: 1rem;
-  font-size: clamp(2.1rem, 1.8rem + 1.4vw, 3.2rem);
+  font-size: clamp(2.2rem, 1.8rem + 1.6vw, 3.5rem);
   font-weight: 700;
   letter-spacing: -0.04em;
+  line-height: 1.02;
 }
 
 .auth-card__description {
   margin-top: 0.85rem;
-  color: var(--muted-foreground);
-  line-height: 1.8;
+  max-width: 34rem;
+  color: rgba(226, 232, 240, 0.84);
+  line-height: 1.75;
 }
 
 .auth-card__feature {
+  margin-top: 1.5rem;
   display: flex;
   gap: 1rem;
   border-radius: 24px;
-  background: linear-gradient(135deg, #0f172a, #0c4a6e);
-  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.auth-card__feature-icon {
+  display: inline-flex;
+  height: 2.75rem;
+  width: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+}
+
+.auth-card__feature-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.auth-card__feature-text {
+  margin-top: 0.35rem;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: rgba(226, 232, 240, 0.82);
+}
+
+.auth-card__metrics {
+  margin-top: 1.5rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.auth-card__metric {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 0.85rem;
+}
+
+.auth-card__metric-label {
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(186, 230, 253, 0.74);
+}
+
+.auth-card__metric-value {
+  font-size: 0.96rem;
+  font-weight: 600;
+}
+
+.auth-card__form-header {
+  margin-bottom: 1.25rem;
+}
+
+.auth-card__form-title {
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #0f172a;
+}
+
+.auth-card__form-copy {
+  margin-top: 0.45rem;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: #64748b;
+}
+
+.auth-form {
+  display: grid;
+  gap: 1rem;
 }
 
 .auth-field {
@@ -776,40 +975,105 @@ hr {
 
 .auth-field span {
   display: block;
-  margin-bottom: 0.6rem;
-  font-size: 0.92rem;
+  margin-bottom: 0.55rem;
+  font-size: 0.83rem;
   font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #475569;
 }
 
 .auth-field input {
   width: 100%;
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(248, 250, 252, 0.92);
   padding: 0.95rem 1rem;
+  color: #0f172a;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.auth-field input:focus {
+  outline: none;
+  border-color: rgba(14, 165, 233, 0.52);
+  box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.12);
+  background: white;
+}
+
+.auth-message {
+  border-radius: 18px;
+  padding: 0.9rem 1rem;
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.auth-message--neutral {
+  background: rgba(226, 232, 240, 0.55);
+  color: #334155;
+}
+
+.auth-message--success {
+  background: rgba(220, 252, 231, 0.9);
+  color: #166534;
+}
+
+.auth-message--error {
+  background: rgba(254, 226, 226, 0.92);
+  color: #b91c1c;
 }
 
 .auth-submit {
   width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
   border-radius: 20px;
-  background: #0f172a;
-  padding: 0.95rem 1rem;
+  background: linear-gradient(135deg, #0f172a, #0c4a6e);
+  padding: 1rem 1rem;
   font-weight: 600;
   color: white;
+  box-shadow: 0 18px 34px rgba(14, 116, 144, 0.24);
+}
+
+.auth-links {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.92rem;
+}
+
+.auth-links a {
+  color: #0f172a;
+  text-decoration: none;
+}
+
+.auth-links a:hover {
+  color: #0369a1;
 }
 
 .settings-switch {
   position: relative;
-  width: 3.4rem;
-  height: 2rem;
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 3.25rem;
+  height: 1.85rem;
+  align-items: center;
   border: 1px solid rgba(148, 163, 184, 0.2);
   border-radius: 999px;
   background: rgba(148, 163, 184, 0.25);
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease;
 }
 
 .settings-switch__thumb {
   position: absolute;
-  top: 0.18rem;
-  left: 0.2rem;
-  width: 1.5rem;
-  height: 1.5rem;
+  top: 0.14rem;
+  left: 0.14rem;
+  width: 1.45rem;
+  height: 1.45rem;
   border-radius: 999px;
   background: white;
   box-shadow: var(--shadow-sm);
@@ -822,29 +1086,77 @@ hr {
 }
 
 .settings-switch--active .settings-switch__thumb {
-  transform: translateX(1.35rem);
+  transform: translateX(1.36rem);
 }
 
 :root[data-theme="dark"] .auth-card {
   border-color: rgba(148, 163, 184, 0.12);
-  background:
-    linear-gradient(135deg, rgba(15, 23, 42, 0.94), rgba(15, 23, 42, 0.82)),
-    rgba(15, 23, 42, 0.94);
+  background: rgba(15, 23, 42, 0.7);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .auth-card {
     border-color: rgba(148, 163, 184, 0.12);
-    background:
-      linear-gradient(135deg, rgba(15, 23, 42, 0.94), rgba(15, 23, 42, 0.82)),
-      rgba(15, 23, 42, 0.94);
+    background: rgba(15, 23, 42, 0.7);
   }
 }
 
-@media (min-width: 900px) {
+:root[data-theme="dark"] .auth-card__panel--form {
+  background: rgba(15, 23, 42, 0.88);
+  border-color: rgba(148, 163, 184, 0.12);
+}
+
+:root[data-theme="dark"] .auth-card__form-title,
+:root[data-theme="dark"] .auth-links a {
+  color: #f8fafc;
+}
+
+:root[data-theme="dark"] .auth-card__form-copy,
+:root[data-theme="dark"] .auth-field span {
+  color: #94a3b8;
+}
+
+:root[data-theme="dark"] .auth-field input {
+  border-color: rgba(148, 163, 184, 0.16);
+  background: rgba(15, 23, 42, 0.72);
+  color: #f8fafc;
+}
+
+:root[data-theme="dark"] .auth-field input:focus {
+  background: rgba(15, 23, 42, 0.9);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .auth-card__panel--form {
+    background: rgba(15, 23, 42, 0.88);
+    border-color: rgba(148, 163, 184, 0.12);
+  }
+
+  :root:not([data-theme="light"]) .auth-card__form-title,
+  :root:not([data-theme="light"]) .auth-links a {
+    color: #f8fafc;
+  }
+
+  :root:not([data-theme="light"]) .auth-card__form-copy,
+  :root:not([data-theme="light"]) .auth-field span {
+    color: #94a3b8;
+  }
+
+  :root:not([data-theme="light"]) .auth-field input {
+    border-color: rgba(148, 163, 184, 0.16);
+    background: rgba(15, 23, 42, 0.72);
+    color: #f8fafc;
+  }
+
+  :root:not([data-theme="light"]) .auth-field input:focus {
+    background: rgba(15, 23, 42, 0.9);
+  }
+}
+
+@media (min-width: 960px) {
   .auth-card {
-    grid-template-columns: 1.05fr 0.95fr;
-    align-items: center;
-    padding: 2rem;
+    grid-template-columns: 1.04fr 0.96fr;
+    align-items: stretch;
+    padding: 1rem;
   }
 }

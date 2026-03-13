@@ -3,7 +3,7 @@
 import Sidebar from "@/components/Sidebar";
 import { usePathname } from "next/navigation";
 
-const authRoutes = new Set(["/", "/signup", "/reset-password"]);
+const authRoutes = new Set(["/", "/signup", "/reset-password", "/verify-email"]);
 
 export default function AppFrame({
   children,

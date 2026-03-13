@@ -5,8 +5,8 @@ export default function ResetPasswordPage() {
     <AuthFormCard
       mode="reset"
       eyebrow="Password reset"
-      title="Reset your password"
-      description="Enter your username or email and the app will prepare a password reset flow."
+      title="Request a password reset"
+      description="This page is ready for the reset flow. Keep the UI simple now and wire the token flow later."
     />
   );
 }

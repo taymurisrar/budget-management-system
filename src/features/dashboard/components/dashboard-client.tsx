@@ -8,6 +8,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import LocalizedDateText from "@/components/localized-date-text";
 import type { DashboardAnalytics } from "@/features/dashboard/services/dashboard.service";
 import { DashboardMetricGrid } from "@/features/dashboard/components/dashboard-metric-grid";
 import { DashboardPatternsPanel } from "@/features/dashboard/components/dashboard-patterns-panel";
@@ -293,7 +294,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
               <tbody>
                 {filteredTransactions.slice(0, 8).map((transaction) => (
                   <tr key={transaction.id} className="border-b border-slate-200/60 last:border-b-0 dark:border-slate-800">
-                    <td className="py-3 text-slate-600 dark:text-slate-300">{new Date(transaction.date).toLocaleDateString()}</td>
+                    <td className="py-3 text-slate-600 dark:text-slate-300">
+                      <LocalizedDateText value={transaction.date} />
+                    </td>
                     <td className="py-3 text-slate-950 dark:text-white">{transaction.category}</td>
                     <td className="py-3 text-slate-600 dark:text-slate-300">{transaction.merchant}</td>
                     <td className={`py-3 text-right font-semibold ${transaction.type === "expense" ? "text-rose-600 dark:text-rose-300" : transaction.type === "income" ? "text-emerald-600 dark:text-emerald-300" : "text-slate-700 dark:text-slate-200"}`}>

@@ -1,4 +1,5 @@
 import {
+  findInventoryCategoryByName,
   findInventoryItemById,
   findInventoryItemByName,
   findInventoryRevisionById,
@@ -12,6 +13,40 @@ import type {
 import type { RestockInventoryItemInput } from "@/features/inventory/validations/inventory-purchase.schema";
 import type { UpdateInventoryRevisionInput } from "@/features/inventory/validations/inventory-revision.schema";
 import { calculateNextRestockDate } from "@/features/inventory/inventory-metrics";
+
+async function resolveInventoryCategory(userId: string, globalCategoryId: string) {
+  const globalCategory = await prisma.category.findUnique({
+    where: { id: globalCategoryId },
+    select: {
+      id: true,
+      name: true,
+      iconKey: true,
+      colorHex: true,
+    },
+  });
+
+  if (!globalCategory) {
+    throw new Error("Selected category was not found");
+  }
+
+  const existingInventoryCategory = await findInventoryCategoryByName({
+    userId,
+    name: globalCategory.name,
+  });
+
+  if (existingInventoryCategory) {
+    return existingInventoryCategory;
+  }
+
+  return prisma.inventoryCategory.create({
+    data: {
+      userId,
+      name: globalCategory.name,
+      iconKey: globalCategory.iconKey,
+      colorHex: globalCategory.colorHex,
+    },
+  });
+}
 
 function resolveNextRestockDate(
   input: Pick<
@@ -164,9 +199,10 @@ const inventoryItemInclude = {
 };
 
 export async function createInventoryItemService(input: CreateInventoryItemInput) {
+  const inventoryCategory = await resolveInventoryCategory(input.userId, input.categoryId);
   const existingItem = await findInventoryItemByName({
     userId: input.userId,
-    categoryId: input.categoryId,
+    categoryId: inventoryCategory.id,
     name: input.name,
   });
 
@@ -185,7 +221,7 @@ export async function createInventoryItemService(input: CreateInventoryItemInput
           connect: { id: input.userId },
         },
         category: {
-          connect: { id: input.categoryId },
+          connect: { id: inventoryCategory.id },
         },
       },
       include: inventoryItemInclude,
@@ -209,6 +245,8 @@ export async function updateInventoryItemService(
     throw new Error("Inventory item not found");
   }
 
+  const inventoryCategory = await resolveInventoryCategory(existingItem.userId, input.categoryId);
+
   return prisma.$transaction(async (tx) => {
     const revisionType = getRevisionType(existingItem, input);
     const changeSummary = buildRevisionSummary(existingItem, input);
@@ -218,7 +256,7 @@ export async function updateInventoryItemService(
       data: {
         ...(toItemData(input) as Prisma.InventoryItemUpdateInput),
         category: {
-          connect: { id: input.categoryId },
+          connect: { id: inventoryCategory.id },
         },
       },
       include: inventoryItemInclude,

@@ -30,6 +30,8 @@ export const createAccountSchema = z.object({
   subtype: z.enum(accountSubtypes),
   iconKey: z.string().min(1),
   currencyCode: z.string().length(3),
+  categoryId: z.string().optional(),
+  subcategoryId: z.string().optional(),
 
   balance: z.coerce.number().optional(),
   chartColor: z.string().min(4).max(20),

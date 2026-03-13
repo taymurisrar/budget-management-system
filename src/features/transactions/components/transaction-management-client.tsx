@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Pencil, Plus, Tags, Trash2 } from "lucide-react";
 import { useState } from "react";
+import LocalizedDateText from "@/components/localized-date-text";
 import { getAccountIcon, getTransactionCategoryIcon } from "@/features/transactions/transaction-option-icons";
 
 type TransactionListItem = {
@@ -79,10 +80,10 @@ export default function TransactionManagementClient({
 
         <div className="flex flex-wrap gap-3">
           <Link
-            href="/transactions/categories"
+            href="/settings"
             className="rounded-2xl border border-[var(--border)] px-4 py-2.5 text-sm font-medium shadow-sm"
           >
-            Manage Categories
+            Manage Global Categories
           </Link>
           <Link
             href="/transactions/new"
@@ -116,7 +117,7 @@ export default function TransactionManagementClient({
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="text-base font-semibold capitalize">{transaction.type}</p>
                       <span className="rounded-full bg-black/5 px-2.5 py-1 text-xs dark:bg-white/10">
-                        {new Date(transaction.transactionDate).toLocaleString()}
+                        <LocalizedDateText value={transaction.transactionDate} kind="datetime" />
                       </span>
                     </div>
                     <p className="text-muted mt-2 text-sm">

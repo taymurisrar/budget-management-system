@@ -26,6 +26,14 @@ export async function createAccountService(input: CreateAccountInput) {
             }
           : undefined;
 
+  const classificationDetails =
+    input.categoryId || input.subcategoryId
+      ? {
+          categoryId: input.categoryId || null,
+          subcategoryId: input.subcategoryId || null,
+        }
+      : {};
+
   return createAccount({
     name: input.name,
     note: input.note || null,
@@ -37,7 +45,10 @@ export async function createAccountService(input: CreateAccountInput) {
     chartColor: input.chartColor,
     countInAsset: input.countInAsset ?? true,
     hideBalance: input.hideBalance ?? false,
-    details,
+    details: {
+      ...(details ?? {}),
+      ...classificationDetails,
+    },
     user: {
       connect: {
         id: input.userId,

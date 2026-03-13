@@ -76,6 +76,15 @@ type CreateAccountSuccessResponse = {
   iconKey?: string | null;
 };
 
+type CategoryOption = {
+  id: string;
+  name: string;
+  subcategories: Array<{
+    id: string;
+    name: string;
+  }>;
+};
+
 type CreateAccountResponse = CreateAccountSuccessResponse | ApiErrorResponse;
 
 function isApiErrorResponse(value: CreateAccountResponse | null): value is ApiErrorResponse {
@@ -94,9 +103,11 @@ function FieldError({ message }: { message?: string }) {
 export default function CreateAccountForm({
   userId,
   defaultCurrencyCode: initialCurrencyCode = defaultCurrencyCode,
+  categories,
 }: {
   userId: string;
   defaultCurrencyCode?: string;
+  categories: CategoryOption[];
 }) {
   const router = useRouter();
   const [serverError, setServerError] = useState("");
@@ -117,6 +128,8 @@ export default function CreateAccountForm({
       group: "debit",
       subtype: "cash",
       currencyCode: initialCurrencyCode,
+      categoryId: "",
+      subcategoryId: "",
       iconKey: "cash",
       balance: 0,
       chartColor: "#3B82F6",
@@ -135,10 +148,15 @@ export default function CreateAccountForm({
 
   const selectedGroup = useWatch({ control, name: "group" });
   const selectedSubtype = useWatch({ control, name: "subtype" });
+  const selectedCategoryId = useWatch({ control, name: "categoryId" });
 
   const subtypeOptions = useMemo(() => {
     return subtypeOptionsByGroup[selectedGroup] ?? [];
   }, [selectedGroup]);
+  const selectedCategory = useMemo(
+    () => categories.find((category) => category.id === selectedCategoryId),
+    [categories, selectedCategoryId]
+  );
 
   const onSubmit = async (values: CreateAccountFormValues) => {
     setServerError("");
@@ -281,6 +299,36 @@ export default function CreateAccountForm({
               placeholder="Optional notes about this account"
             />
             <FieldError message={errors.note?.message} />
+          </div>
+
+          <div>
+            <FieldLabel>Global Category</FieldLabel>
+            <select {...register("categoryId")} className="w-full px-4 py-3">
+              <option value="">Optional classification</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+            <FieldError message={errors.categoryId?.message} />
+          </div>
+
+          <div>
+            <FieldLabel>Global Subcategory</FieldLabel>
+            <select
+              {...register("subcategoryId")}
+              className="w-full px-4 py-3"
+              disabled={!selectedCategory}
+            >
+              <option value="">Optional subcategory</option>
+              {(selectedCategory?.subcategories ?? []).map((subcategory) => (
+                <option key={subcategory.id} value={subcategory.id}>
+                  {subcategory.name}
+                </option>
+              ))}
+            </select>
+            <FieldError message={errors.subcategoryId?.message} />
           </div>
 
           <div>

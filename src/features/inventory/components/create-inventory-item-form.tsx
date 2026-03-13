@@ -10,7 +10,8 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
+import ThemedDateInput from "@/components/themed-date-input";
 import { InventoryFieldHelp } from "@/features/inventory/components/inventory-field-help";
 import {
   calculateNextRestockDate,
@@ -21,7 +22,6 @@ import {
   usesSizeTracking,
 } from "@/features/inventory/inventory-metrics";
 import {
-  findInventoryCategoryProfile,
   formatInventoryUnit,
   inventoryIconOptions,
   inventoryUnitGroups,
@@ -38,6 +38,10 @@ type CategoryOption = {
   id: string;
   name: string;
   iconKey: string | null;
+  subcategories: Array<{
+    id: string;
+    name: string;
+  }>;
 };
 
 type ApiErrorResponse = {
@@ -141,7 +145,6 @@ export default function CreateInventoryItemForm({
     | string
     | undefined;
   const selectedCategory = categories.find((category) => category.id === selectedCategoryId);
-  const categoryProfile = findInventoryCategoryProfile(selectedCategory?.name);
   const sizeTrackingEnabled = usesSizeTracking({
     currentQuantity,
     inUseQuantity,
@@ -184,19 +187,6 @@ export default function CreateInventoryItemForm({
       usageSuggestion,
     ]
   );
-
-  const addSuggestedTag = (tag: string) => {
-    const existing = tagsText
-      .split(",")
-      .map((value) => value.trim())
-      .filter(Boolean);
-
-    if (existing.includes(tag)) {
-      return;
-    }
-
-    setTagsText(existing.length > 0 ? `${existing.join(", ")}, ${tag}` : tag);
-  };
 
   useEffect(() => {
     const wasAutoFilled =
@@ -373,16 +363,16 @@ export default function CreateInventoryItemForm({
               className="w-full rounded-2xl border border-[var(--border)] px-4 py-3"
               placeholder="e.g. Oral care, Tissue, Laundry"
             />
-            {categoryProfile ? (
+            {selectedCategory && selectedCategory.subcategories.length > 0 ? (
               <div className="mt-2 flex flex-wrap gap-2">
-                {categoryProfile.subcategories.map((subcategory) => (
+                {selectedCategory.subcategories.map((subcategory) => (
                   <button
-                    key={subcategory}
+                    key={subcategory.id}
                     type="button"
-                    onClick={() => setValue("subcategory", subcategory, { shouldValidate: true })}
+                    onClick={() => setValue("subcategory", subcategory.name, { shouldValidate: true })}
                     className="rounded-full border border-[var(--border)] px-3 py-1 text-xs"
                   >
-                    {subcategory}
+                    {subcategory.name}
                   </button>
                 ))}
               </div>
@@ -404,20 +394,6 @@ export default function CreateInventoryItemForm({
               className="w-full rounded-2xl border border-[var(--border)] px-4 py-3"
               placeholder="Comma separated tags: bathroom, monthly refill, family staple"
             />
-            {categoryProfile ? (
-              <div className="mt-2 flex flex-wrap gap-2">
-                {categoryProfile.tags.map((tag) => (
-                  <button
-                    key={tag}
-                    type="button"
-                    onClick={() => addSuggestedTag(tag)}
-                    className="rounded-full bg-blue-50 px-3 py-1 text-xs text-blue-700 dark:bg-blue-500/10 dark:text-blue-300"
-                  >
-                    {tag}
-                  </button>
-                ))}
-              </div>
-            ) : null}
             {errors.tags ? (
               <p className="mt-2 text-sm text-red-600">{errors.tags.message as string}</p>
             ) : null}
@@ -802,11 +778,16 @@ export default function CreateInventoryItemForm({
         <div className="grid gap-5 md:grid-cols-4">
           <div>
             <InventoryFieldHelp label="Purchase date" help="When this pack or item was bought." optional />
-            <input
-              type="date"
-              {...register("lastPurchaseDate")}
-              className="w-full rounded-2xl border border-[var(--border)] px-4 py-3"
-              max={getTodayDateInputValue()}
+            <Controller
+              control={control}
+              name="lastPurchaseDate"
+              render={({ field }) => (
+                <ThemedDateInput
+                  value={(field.value as string | undefined) ?? undefined}
+                  onChange={(nextValue) => field.onChange(nextValue)}
+                  max={getTodayDateInputValue()}
+                />
+              )}
             />
             {errors.lastPurchaseDate ? (
               <p className="mt-2 text-sm text-red-600">{errors.lastPurchaseDate.message}</p>
@@ -815,12 +796,17 @@ export default function CreateInventoryItemForm({
 
           <div>
             <InventoryFieldHelp label="Finished / ended date" help="When one full item was completely used. Used to estimate daily usage." optional />
-            <input
-              type="date"
-              {...register("lastConsumptionDate")}
-              className="w-full rounded-2xl border border-[var(--border)] px-4 py-3"
-              min={lastPurchaseDate || undefined}
-              max={getTodayDateInputValue()}
+            <Controller
+              control={control}
+              name="lastConsumptionDate"
+              render={({ field }) => (
+                <ThemedDateInput
+                  value={(field.value as string | undefined) ?? undefined}
+                  onChange={(nextValue) => field.onChange(nextValue)}
+                  min={lastPurchaseDate || undefined}
+                  max={getTodayDateInputValue()}
+                />
+              )}
             />
             {errors.lastConsumptionDate ? (
               <p className="mt-2 text-sm text-red-600">{errors.lastConsumptionDate.message}</p>
@@ -829,11 +815,16 @@ export default function CreateInventoryItemForm({
 
           <div>
             <InventoryFieldHelp label="Next restock date" help="When you plan or expect to buy the next refill." optional />
-            <input
-              type="date"
-              {...register("nextRestockDate")}
-              className="w-full rounded-2xl border border-[var(--border)] px-4 py-3"
-              min={getTodayDateInputValue()}
+            <Controller
+              control={control}
+              name="nextRestockDate"
+              render={({ field }) => (
+                <ThemedDateInput
+                  value={(field.value as string | undefined) ?? undefined}
+                  onChange={(nextValue) => field.onChange(nextValue)}
+                  min={getTodayDateInputValue()}
+                />
+              )}
             />
             {errors.nextRestockDate ? (
               <p className="mt-2 text-sm text-red-600">{errors.nextRestockDate.message}</p>
@@ -847,11 +838,16 @@ export default function CreateInventoryItemForm({
 
           <div>
             <InventoryFieldHelp label="Expiry date" help="Track items that expire, such as medicines or food." optional />
-            <input
-              type="date"
-              {...register("expiryDate")}
-              className="w-full rounded-2xl border border-[var(--border)] px-4 py-3"
-              min={lastPurchaseDate || undefined}
+            <Controller
+              control={control}
+              name="expiryDate"
+              render={({ field }) => (
+                <ThemedDateInput
+                  value={(field.value as string | undefined) ?? undefined}
+                  onChange={(nextValue) => field.onChange(nextValue)}
+                  min={lastPurchaseDate || undefined}
+                />
+              )}
             />
             {errors.expiryDate ? (
               <p className="mt-2 text-sm text-red-600">{errors.expiryDate.message}</p>

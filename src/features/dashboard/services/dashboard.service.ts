@@ -9,6 +9,7 @@ import {
   getInventoryStatus,
   getTrackingUnit,
 } from "@/features/inventory/inventory-metrics";
+import { getWeekStartDayIndex } from "@/lib/user-preferences";
 
 export type DashboardMetric = {
   label: string;
@@ -136,6 +137,14 @@ function getMonthKey(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
 
+function getStartOfWeek(date: Date, weekStartsOn: number) {
+  const start = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const diff = (start.getDay() - weekStartsOn + 7) % 7;
+  start.setDate(start.getDate() - diff);
+  start.setHours(0, 0, 0, 0);
+  return start;
+}
+
 function toNumber(value: unknown) {
   if (value == null) {
     return 0;
@@ -231,13 +240,19 @@ function emptyDashboard(): DashboardAnalytics {
   };
 }
 
-export async function getDashboardAnalytics(): Promise<DashboardAnalytics> {
-  const user = await prisma.user.findFirst({
-    orderBy: { createdAt: "asc" },
+export async function getDashboardAnalytics(userId: string): Promise<DashboardAnalytics> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
     select: {
       id: true,
       name: true,
       baseCurrencyCode: true,
+      timezone: true,
+      settings: {
+        select: {
+          weekStartsOn: true,
+        },
+      },
     },
   });
 
@@ -252,12 +267,12 @@ export async function getDashboardAnalytics(): Promise<DashboardAnalytics> {
   const transactionWindowStart = new Date(now.getFullYear(), now.getMonth() - 5, 1);
   const expiringSoonCutoff = new Date(now);
   expiringSoonCutoff.setDate(expiringSoonCutoff.getDate() + 30);
-  const sevenDaysAgo = new Date(now);
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-  const fourteenDaysAgo = new Date(now);
-  fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
   const restockSoonCutoff = new Date(now);
   restockSoonCutoff.setDate(restockSoonCutoff.getDate() + 7);
+  const weekStartDayIndex = getWeekStartDayIndex(user.settings?.weekStartsOn ?? "monday");
+  const currentWeekStart = getStartOfWeek(now, weekStartDayIndex);
+  const previousWeekStart = new Date(currentWeekStart);
+  previousWeekStart.setDate(previousWeekStart.getDate() - 7);
 
   const [accounts, transactions, budgets, inventoryItems] = await Promise.all([
     prisma.$queryRaw<
@@ -607,23 +622,24 @@ export async function getDashboardAnalytics(): Promise<DashboardAnalytics> {
   const budgetUsage = totalBudgeted > 0 ? (monthExpense / totalBudgeted) * 100 : 0;
   const cashflowTone: DashboardMetric["tone"] =
     monthNet > 0 ? "positive" : monthNet < 0 ? "negative" : "neutral";
-  const last7DaysTransactions = postedTransactions.filter(
-    (transaction) => transaction.transactionDate >= sevenDaysAgo
+  const currentWeekTransactions = postedTransactions.filter(
+    (transaction) => transaction.transactionDate >= currentWeekStart
   );
-  const previous7DaysTransactions = postedTransactions.filter(
+  const previousWeekTransactions = postedTransactions.filter(
     (transaction) =>
-      transaction.transactionDate >= fourteenDaysAgo && transaction.transactionDate < sevenDaysAgo
+      transaction.transactionDate >= previousWeekStart &&
+      transaction.transactionDate < currentWeekStart
   );
-  const recentExpense = last7DaysTransactions
+  const recentExpense = currentWeekTransactions
     .filter((transaction) => transaction.type === "expense")
     .reduce((sum, transaction) => sum + transaction.convertedAmount, 0);
-  const previousExpense = previous7DaysTransactions
+  const previousExpense = previousWeekTransactions
     .filter((transaction) => transaction.type === "expense")
     .reduce((sum, transaction) => sum + transaction.convertedAmount, 0);
-  const recentIncome = last7DaysTransactions
+  const recentIncome = currentWeekTransactions
     .filter((transaction) => transaction.type === "income")
     .reduce((sum, transaction) => sum + transaction.convertedAmount, 0);
-  const previousIncome = previous7DaysTransactions
+  const previousIncome = previousWeekTransactions
     .filter((transaction) => transaction.type === "income")
     .reduce((sum, transaction) => sum + transaction.convertedAmount, 0);
   const topExpenseCategory = [...spentByCategory.entries()].sort((left, right) => right[1] - left[1])[0];
@@ -632,14 +648,14 @@ export async function getDashboardAnalytics(): Promise<DashboardAnalytics> {
     {
       label: "Spending trend",
       value: `${round(percentChange(recentExpense, previousExpense))}%`,
-      detail: "Last 7 days vs previous 7 days",
+      detail: `This week vs last week (${user.settings?.weekStartsOn ?? "monday"} start)`,
       tone:
         recentExpense < previousExpense ? "positive" : recentExpense > previousExpense ? "warning" : "neutral",
     },
     {
       label: "Income trend",
       value: `${round(percentChange(recentIncome, previousIncome))}%`,
-      detail: "Last 7 days vs previous 7 days",
+      detail: `This week vs last week (${user.settings?.weekStartsOn ?? "monday"} start)`,
       tone:
         recentIncome > previousIncome ? "positive" : recentIncome < previousIncome ? "warning" : "neutral",
     },

@@ -1,4 +1,5 @@
 import type { DashboardMetric, InventoryPrediction } from "@/features/dashboard/services/dashboard.service";
+import { formatDateWithPreferences } from "@/lib/date-formatting";
 
 export function currencyFormatter(currencyCode: string) {
   return new Intl.NumberFormat("en-US", {
@@ -17,7 +18,7 @@ export function compactNumber(value: number) {
 
 export function formatDate(value: string | null) {
   if (!value) return "Not set";
-  return new Date(value).toLocaleDateString();
+  return formatDateWithPreferences(value);
 }
 
 export function toneClasses(tone: DashboardMetric["tone"]) {
