@@ -3,6 +3,10 @@
 import Link from "next/link";
 import { ArrowLeft, Pencil, Plus, Trash2 } from "lucide-react";
 import { createElement, useMemo, useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Toggle } from "@/components/ui/toggle";
 import {
   getTransactionCategoryIcon,
   transactionIconChoices,
@@ -247,13 +251,13 @@ export default function TransactionCategoryManagementClient({
           className="rounded-2xl border border-[var(--border)] bg-white/70 px-4 py-3 dark:bg-white/5"
           placeholder="Sort order"
         />
-        <label className="flex items-center gap-2 rounded-2xl border border-[var(--border)] px-4 py-3 text-sm">
-          <input
-            type="checkbox"
+        <label className="flex items-center justify-between gap-3 rounded-2xl border border-[var(--border)] px-4 py-3 text-sm">
+          <span>Active</span>
+          <Toggle
             checked={form.isActive}
-            onChange={(event) => onChange({ ...form, isActive: event.target.checked })}
+            onClick={() => onChange({ ...form, isActive: !form.isActive })}
+            aria-label="Toggle active state"
           />
-          Active
         </label>
       </div>
     );
@@ -264,13 +268,13 @@ export default function TransactionCategoryManagementClient({
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="section-title capitalize">{type} Categories</h2>
-          <span className="rounded-full bg-black/5 px-3 py-1 text-xs dark:bg-white/10">
+          <Badge className="px-3 py-1">
             {items.length} total
-          </span>
+          </Badge>
         </div>
 
         {items.map((category) => (
-          <div key={category.id} className="glass-card rounded-[28px] p-5">
+          <Card key={category.id} className="rounded-[28px] p-5">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-3">
@@ -292,25 +296,25 @@ export default function TransactionCategoryManagementClient({
 
                 <div className="mt-4 flex flex-wrap gap-2">
                   {category.subcategories.map((subcategory) => (
-                    <span
+                    <Badge
                       key={subcategory.id}
-                      className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1.5 text-xs text-blue-700 dark:bg-blue-500/10 dark:text-blue-300"
+                      variant="blue"
+                      className="inline-flex items-center gap-2 px-3 py-1.5"
                     >
                       <IconPreview iconKey={subcategory.iconKey} />
                       {subcategory.name}
-                    </span>
+                    </Badge>
                   ))}
                   {category.subcategories.length === 0 ? (
-                    <span className="rounded-full bg-black/5 px-3 py-1.5 text-xs dark:bg-white/10">
+                    <Badge className="px-3 py-1.5">
                       No subcategories yet
-                    </span>
+                    </Badge>
                   ) : null}
                 </div>
               </div>
 
               <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
+                <Button
                   onClick={() => {
                     setEditingCategoryId(category.id);
                     setCategoryForm({
@@ -322,27 +326,27 @@ export default function TransactionCategoryManagementClient({
                       isActive: category.isActive,
                     });
                   }}
-                  className="inline-flex items-center gap-2 rounded-2xl border border-[var(--border)] px-3 py-2 text-sm"
+                  variant="secondary"
+                  size="sm"
                 >
                   <Pencil className="h-4 w-4" />
                   Edit
-                </button>
-                <button
-                  type="button"
+                </Button>
+                <Button
                   onClick={() => void removeCategory(category.id)}
-                  className="inline-flex items-center gap-2 rounded-2xl border border-red-200 px-3 py-2 text-sm text-red-700 dark:border-red-500/20 dark:text-red-300"
+                  variant="danger"
+                  size="sm"
                 >
                   <Trash2 className="h-4 w-4" />
                   Delete
-                </button>
+                </Button>
               </div>
             </div>
 
             <div className="mt-5 rounded-[24px] border border-[var(--border)] bg-white/50 p-4 dark:bg-white/5">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold">Subcategories</p>
-                <button
-                  type="button"
+                <Button
                   onClick={() => {
                     setEditingSubcategoryId(null);
                     setSubcategoryDrafts((current) => ({
@@ -350,11 +354,12 @@ export default function TransactionCategoryManagementClient({
                       [category.id]: emptySubcategoryForm,
                     }));
                   }}
-                  className="inline-flex items-center gap-2 rounded-2xl border border-[var(--border)] px-3 py-2 text-sm"
+                  variant="secondary"
+                  size="sm"
                 >
                   <Plus className="h-4 w-4" />
                   New Subcategory
-                </button>
+                </Button>
               </div>
 
               <div className="mt-4 space-y-3">
@@ -369,8 +374,7 @@ export default function TransactionCategoryManagementClient({
                         <p className="font-medium">{subcategory.name}</p>
                       </div>
                       <div className="flex gap-2">
-                        <button
-                          type="button"
+                        <Button
                           onClick={() => {
                             setEditingSubcategoryId(subcategory.id);
                             setSubcategoryDrafts((current) => ({
@@ -384,17 +388,18 @@ export default function TransactionCategoryManagementClient({
                               },
                             }));
                           }}
-                          className="rounded-2xl border border-[var(--border)] px-3 py-2 text-sm"
+                          variant="secondary"
+                          size="sm"
                         >
                           Edit
-                        </button>
-                        <button
-                          type="button"
+                        </Button>
+                        <Button
                           onClick={() => void removeSubcategory(subcategory.id)}
-                          className="rounded-2xl border border-red-200 px-3 py-2 text-sm text-red-700 dark:border-red-500/20 dark:text-red-300"
+                          variant="danger"
+                          size="sm"
                         >
                           Delete
-                        </button>
+                        </Button>
                       </div>
                     </div>
 
@@ -410,20 +415,19 @@ export default function TransactionCategoryManagementClient({
                           false
                         )}
                         <div className="flex gap-2">
-                          <button
-                            type="button"
+                          <Button
                             onClick={() => void saveSubcategory(category.id, subcategory.id)}
-                            className="rounded-2xl bg-black px-4 py-2 text-sm font-medium text-white dark:bg-white dark:text-black"
+                            size="sm"
                           >
                             Save
-                          </button>
-                          <button
-                            type="button"
+                          </Button>
+                          <Button
                             onClick={() => setEditingSubcategoryId(null)}
-                            className="rounded-2xl border border-[var(--border)] px-4 py-2 text-sm"
+                            variant="secondary"
+                            size="sm"
                           >
                             Cancel
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     ) : null}
@@ -441,18 +445,18 @@ export default function TransactionCategoryManagementClient({
                         })),
                       false
                     )}
-                    <button
-                      type="button"
+                    <Button
                       onClick={() => void saveSubcategory(category.id)}
-                      className="mt-3 rounded-2xl bg-black px-4 py-2 text-sm font-medium text-white dark:bg-white dark:text-black"
+                      size="sm"
+                      className="mt-3"
                     >
                       Add Subcategory
-                    </button>
+                    </Button>
                   </div>
                 ) : null}
               </div>
             </div>
-          </div>
+          </Card>
         ))}
       </section>
     );
@@ -475,7 +479,7 @@ export default function TransactionCategoryManagementClient({
         </div>
       </div>
 
-      <div className="glass-card mt-8 rounded-[32px] p-6">
+      <Card className="mt-8 rounded-[32px] p-6">
         <div className="flex items-center justify-between gap-3">
           <div>
             <h2 className="section-title">
@@ -486,9 +490,9 @@ export default function TransactionCategoryManagementClient({
             </p>
           </div>
           {statusMessage ? (
-            <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
+            <Badge variant="success" className="px-3 py-1">
               {statusMessage}
-            </span>
+            </Badge>
           ) : null}
         </div>
 
@@ -499,25 +503,24 @@ export default function TransactionCategoryManagementClient({
             true
           )}
           <div className="flex gap-2">
-            <button
-              type="button"
+            <Button
               onClick={() => void saveCategory()}
-              className="rounded-2xl bg-black px-4 py-2 text-sm font-medium text-white dark:bg-white dark:text-black"
+              size="sm"
             >
               {editingCategoryId ? "Save Changes" : "Create Category"}
-            </button>
+            </Button>
             {editingCategoryId ? (
-              <button
-                type="button"
+              <Button
                 onClick={resetCategoryForm}
-                className="rounded-2xl border border-[var(--border)] px-4 py-2 text-sm"
+                variant="secondary"
+                size="sm"
               >
                 Cancel
-              </button>
+              </Button>
             ) : null}
           </div>
         </div>
-      </div>
+      </Card>
 
       <div className="mt-8 grid gap-8 xl:grid-cols-2">
         {renderCategorySection("income", groupedCategories.income)}

@@ -2,6 +2,8 @@
 
 import { MoonStar, SunMedium } from "lucide-react";
 import { useSyncExternalStore } from "react";
+import { Card } from "@/components/ui/card";
+import { Toggle } from "@/components/ui/toggle";
 
 type ThemeMode = "light" | "dark";
 
@@ -42,10 +44,10 @@ export default function ThemeToggle() {
   }
 
   return (
-    <button
-      type="button"
-      onClick={toggleTheme}
-      className="inline-flex w-full items-center justify-between rounded-2xl border border-[var(--border)] bg-white/80 px-4 py-3 text-left shadow-sm dark:bg-slate-950/60"
+    <Card
+      className="flex w-full items-center justify-between rounded-2xl px-4 py-3 dark:bg-slate-950/60"
+      role="group"
+      aria-label="Theme toggle"
     >
       <span>
         <span className="block text-sm font-semibold">
@@ -58,6 +60,7 @@ export default function ThemeToggle() {
       <span className="rounded-2xl bg-slate-950 p-2 text-white dark:bg-white dark:text-slate-950">
         {theme === "dark" ? <MoonStar className="h-4 w-4" /> : <SunMedium className="h-4 w-4" />}
       </span>
-    </button>
+      <Toggle checked={theme === "dark"} onClick={toggleTheme} aria-label="Toggle theme" />
+    </Card>
   );
 }

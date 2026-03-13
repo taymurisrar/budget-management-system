@@ -17,6 +17,11 @@ import {
   Wallet,
 } from "lucide-react";
 import LocalizedDateText from "@/components/localized-date-text";
+import { Alert } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { FormHint, FormLabel, Input, Select, Textarea } from "@/components/ui/form-controls";
 
 type AccountOption = {
   id: string;
@@ -145,11 +150,7 @@ function buildInitialFormState(goal?: GoalItem | null): GoalFormState {
 }
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
-  return <label className="mb-2 block text-sm font-medium">{children}</label>;
-}
-
-function FieldHint({ children }: { children: React.ReactNode }) {
-  return <p className="mt-2 text-xs text-[var(--muted-foreground)]">{children}</p>;
+  return <FormLabel>{children}</FormLabel>;
 }
 
 export default function GoalsManagementClient({
@@ -371,14 +372,10 @@ export default function GoalsManagementClient({
               {totals.remaining.toFixed(2)} {defaultCurrencyCode}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={startCreate}
-            className="inline-flex items-center justify-center gap-2 rounded-[24px] bg-slate-950 px-5 py-4 text-sm font-semibold text-white dark:bg-white dark:text-slate-950"
-          >
+          <Button type="button" onClick={startCreate} className="rounded-[24px] px-5 py-4 font-semibold">
             <Plus className="h-4 w-4" />
             New Goal
-          </button>
+          </Button>
         </div>
       </section>
 
@@ -391,9 +388,10 @@ export default function GoalsManagementClient({
             const progress = targetAmount > 0 ? Math.min((currentAmount / targetAmount) * 100, 100) : 0;
 
             return (
-              <article
+              <Card
+                as="article"
                 key={goal.id}
-                className={`glass-card rounded-[28px] p-5 ${
+                className={`rounded-[28px] p-5 ${
                   selectedGoal?.id === goal.id ? "ring-2 ring-sky-300/70" : ""
                 }`}
               >
@@ -410,12 +408,12 @@ export default function GoalsManagementClient({
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <h2 className="text-xl font-semibold">{goal.name}</h2>
-                        <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-medium text-sky-700 dark:bg-sky-500/10 dark:text-sky-300">
+                        <Badge variant="blue" className="px-3 py-1 font-medium">
                           {formatGoalType(goal.type)}
-                        </span>
-                        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                        </Badge>
+                        <Badge className="bg-slate-100 px-3 py-1 font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                           {formatStatus(goal.status)}
-                        </span>
+                        </Badge>
                       </div>
 
                       <p className="mt-2 text-sm text-[var(--muted-foreground)]">
@@ -423,44 +421,44 @@ export default function GoalsManagementClient({
                       </p>
 
                       <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                        <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
+                        <Badge variant="success" className="px-3 py-1">
                           {currentAmount.toFixed(2)} / {targetAmount.toFixed(2)} {goal.currencyCode}
-                        </span>
-                        <span className="rounded-full bg-amber-50 px-3 py-1 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
+                        </Badge>
+                        <Badge className="bg-amber-50 px-3 py-1 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
                           {formatFrequency(goal.frequency)}
-                        </span>
+                        </Badge>
                         {goal.sourceAccount ? (
-                          <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                          <Badge className="bg-slate-100 px-3 py-1 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                             From {goal.sourceAccount.name}
-                          </span>
+                          </Badge>
                         ) : null}
                         {goal.destinationAccount ? (
-                          <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                          <Badge className="bg-slate-100 px-3 py-1 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                             To {goal.destinationAccount.name}
-                          </span>
+                          </Badge>
                         ) : null}
                       </div>
                     </div>
                   </button>
 
                   <div className="flex gap-2">
-                    <button
-                      type="button"
+                    <Button
                       onClick={() => startEdit(goal)}
-                      className="inline-flex items-center gap-2 rounded-2xl border border-[var(--border)] px-3 py-2 text-sm"
+                      variant="secondary"
+                      size="sm"
                     >
                       <Pencil className="h-4 w-4" />
                       Edit
-                    </button>
-                    <button
-                      type="button"
+                    </Button>
+                    <Button
                       disabled={deletingGoalId === goal.id}
                       onClick={() => void deleteGoal(goal.id)}
-                      className="inline-flex items-center gap-2 rounded-2xl border border-red-200 px-3 py-2 text-sm text-red-700 disabled:opacity-50 dark:border-red-500/20 dark:text-red-300"
+                      variant="danger"
+                      size="sm"
                     >
                       <Trash2 className="h-4 w-4" />
                       {deletingGoalId === goal.id ? "Deleting..." : "Delete"}
-                    </button>
+                    </Button>
                   </div>
                 </div>
 
@@ -525,32 +523,31 @@ export default function GoalsManagementClient({
                       className="w-full px-4 py-3 lg:w-[180px]"
                       placeholder={`Add ${goal.currencyCode}`}
                     />
-                    <button
-                      type="button"
+                    <Button
                       disabled={contributingGoalId === goal.id}
                       onClick={() => void addContribution(goal)}
-                      className="rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
+                      className="bg-emerald-600 px-4 py-3 font-semibold text-white dark:bg-emerald-500 dark:text-white"
                     >
                       {contributingGoalId === goal.id ? "Saving..." : "Add Saving"}
-                    </button>
+                    </Button>
                   </div>
                 </div>
-              </article>
+              </Card>
             );
           })}
 
           {goals.length === 0 ? (
-            <div className="glass-card rounded-[28px] p-8 text-center">
+            <Card className="rounded-[28px] p-8 text-center">
               <p className="text-lg font-semibold">No goals yet</p>
               <p className="text-muted mt-2">
                 Create a free saving goal for flexible saving, or a circle saving goal for daily,
                 weekly, or monthly contributions.
               </p>
-            </div>
+            </Card>
           ) : null}
         </div>
 
-        <aside className="glass-card rounded-[30px] p-6">
+        <Card as="aside" className="rounded-[30px] p-6">
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-700 dark:text-sky-300">
@@ -561,9 +558,9 @@ export default function GoalsManagementClient({
               </h2>
             </div>
 
-            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+            <Badge className="bg-slate-100 px-3 py-1 font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">
               Base currency {defaultCurrencyCode}
-            </span>
+            </Badge>
           </div>
 
           <form onSubmit={submitGoal} className="mt-6 space-y-5">
@@ -641,41 +638,38 @@ export default function GoalsManagementClient({
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <FieldLabel>Initial Saving</FieldLabel>
-                <input
+                <FormLabel>Initial Saving</FormLabel>
+                <Input
                   type="number"
                   min="0"
                   step="0.01"
                   value={formState.initialAmount}
                   onChange={(event) => setField("initialAmount", event.target.value)}
-                  className="w-full px-4 py-3"
                 />
               </div>
 
               <div>
-                <FieldLabel>Saving Goal</FieldLabel>
-                <input
+                <FormLabel>Saving Goal</FormLabel>
+                <Input
                   type="number"
                   min="0"
                   step="0.01"
                   value={formState.targetAmount}
                   onChange={(event) => setField("targetAmount", event.target.value)}
-                  className="w-full px-4 py-3"
                 />
               </div>
 
               {isEditing ? (
                 <div className="sm:col-span-2">
-                  <FieldLabel>Current Saved Amount</FieldLabel>
-                  <input
+                  <FormLabel>Current Saved Amount</FormLabel>
+                  <Input
                     type="number"
                     min="0"
                     step="0.01"
                     value={formState.currentAmount}
                     onChange={(event) => setField("currentAmount", event.target.value)}
-                    className="w-full px-4 py-3"
                   />
-                  <FieldHint>For new goals, current savings start from the initial saving amount.</FieldHint>
+                  <FormHint>For new goals, current savings start from the initial saving amount.</FormHint>
                 </div>
               ) : null}
             </div>
@@ -683,43 +677,40 @@ export default function GoalsManagementClient({
             {formState.type === "circle_saving" ? (
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <FieldLabel>Recurring Saving</FieldLabel>
-                  <input
+                  <FormLabel>Recurring Saving</FormLabel>
+                  <Input
                     type="number"
                     min="0"
                     step="0.01"
                     value={formState.contributionAmount}
                     onChange={(event) => setField("contributionAmount", event.target.value)}
-                    className="w-full px-4 py-3"
                     placeholder={`Amount in ${defaultCurrencyCode}`}
                   />
                 </div>
 
                 <div>
-                  <FieldLabel>Frequency</FieldLabel>
-                  <select
+                  <FormLabel>Frequency</FormLabel>
+                  <Select
                     value={formState.frequency}
                     onChange={(event) =>
                       setField("frequency", event.target.value as GoalFormState["frequency"])
                     }
-                    className="w-full px-4 py-3"
                   >
                     <option value="">Select frequency</option>
                     <option value="daily">Daily</option>
                     <option value="weekly">Weekly</option>
                     <option value="monthly">Monthly</option>
-                  </select>
+                  </Select>
                 </div>
               </div>
             ) : null}
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <FieldLabel>Source Account</FieldLabel>
-                <select
+                <FormLabel>Source Account</FormLabel>
+                <Select
                   value={formState.sourceAccountId}
                   onChange={(event) => setField("sourceAccountId", event.target.value)}
-                  className="w-full px-4 py-3"
                 >
                   <option value="">Optional source account</option>
                   {accounts.map((account) => (
@@ -727,15 +718,14 @@ export default function GoalsManagementClient({
                       {account.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               <div>
-                <FieldLabel>Destination Account</FieldLabel>
-                <select
+                <FormLabel>Destination Account</FormLabel>
+                <Select
                   value={formState.destinationAccountId}
                   onChange={(event) => setField("destinationAccountId", event.target.value)}
-                  className="w-full px-4 py-3"
                 >
                   <option value="">Optional destination account</option>
                   {accounts.map((account) => (
@@ -743,65 +733,62 @@ export default function GoalsManagementClient({
                       {account.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               <div>
-                <FieldLabel>Start Date</FieldLabel>
-                <input
+                <FormLabel>Start Date</FormLabel>
+                <Input
                   type="date"
                   value={formState.startDate}
                   onChange={(event) => setField("startDate", event.target.value)}
-                  className="w-full px-4 py-3"
                 />
               </div>
 
               <div>
-                <FieldLabel>End Date</FieldLabel>
-                <input
+                <FormLabel>End Date</FormLabel>
+                <Input
                   type="date"
                   value={formState.endDate}
                   onChange={(event) => setField("endDate", event.target.value)}
-                  className="w-full px-4 py-3"
                 />
               </div>
             </div>
 
             <div>
-              <FieldLabel>Note</FieldLabel>
-              <textarea
+              <FormLabel>Note</FormLabel>
+              <Textarea
                 value={formState.note}
                 onChange={(event) => setField("note", event.target.value)}
-                className="w-full rounded-2xl px-4 py-3"
                 rows={4}
                 placeholder="Why this goal exists, the savings rule, milestones, or reminders."
               />
             </div>
 
             {serverError ? (
-              <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300">
+              <Alert variant="error">
                 {serverError}
-              </div>
+              </Alert>
             ) : null}
 
             <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-              <button
-                type="button"
+              <Button
                 onClick={startCreate}
-                className="rounded-2xl border border-[var(--border)] px-4 py-3 text-sm font-medium"
+                variant="secondary"
+                className="px-4 py-3"
               >
                 Reset
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="rounded-2xl bg-black px-5 py-3 text-sm font-medium text-white shadow-lg disabled:opacity-50 dark:bg-white dark:text-black"
+                className="px-5 py-3"
               >
                 {isSubmitting ? "Saving..." : isEditing ? "Update Goal" : "Create Goal"}
-              </button>
+              </Button>
             </div>
           </form>
-        </aside>
+        </Card>
       </section>
     </div>
   );

@@ -12,6 +12,9 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import ThemedDateInput from "@/components/themed-date-input";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { InventoryFieldHelp } from "@/features/inventory/components/inventory-field-help";
 import {
   calculateNextRestockDate,
@@ -279,7 +282,7 @@ export default function CreateInventoryItemForm({
   };
 
   return (
-    <div className="glass-card overflow-hidden">
+    <Card className="overflow-hidden">
       <div className="border-b border-[var(--border)] px-6 py-5">
         <div className="flex items-start gap-3">
           <div className="rounded-2xl bg-black/90 p-3 text-white dark:bg-white dark:text-black">
@@ -400,7 +403,7 @@ export default function CreateInventoryItemForm({
           </div>
         </div>
 
-        <section className="rounded-[28px] border border-[var(--border)] bg-white/50 p-5 dark:bg-white/5">
+        <Card as="section" tone="soft" className="rounded-[28px] p-5 dark:bg-white/5">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h3 className="text-base font-semibold">Pick a visual icon</h3>
@@ -434,9 +437,9 @@ export default function CreateInventoryItemForm({
               );
             })}
           </div>
-        </section>
+        </Card>
 
-        <section className="rounded-[28px] border border-[var(--border)] bg-white/50 p-5 dark:bg-white/5">
+        <Card as="section" tone="soft" className="rounded-[28px] p-5 dark:bg-white/5">
           <div>
             <h3 className="text-base font-semibold">How do you count this item?</h3>
             <p className="text-muted mt-1 text-sm">
@@ -476,10 +479,10 @@ export default function CreateInventoryItemForm({
             ))}
           </div>
           {errors.unit ? <p className="mt-2 text-sm text-red-600">{errors.unit.message}</p> : null}
-        </section>
+        </Card>
 
         <div className="grid gap-5 md:grid-cols-2">
-          <div className="rounded-[28px] border border-[var(--border)] bg-white/50 p-5 dark:bg-white/5">
+          <Card className="rounded-[28px] border border-[var(--border)] bg-white/50 p-5 dark:bg-white/5">
             <h3 className="text-base font-semibold">Pack and size details</h3>
             <p className="text-muted mt-1 text-sm">
               Useful for cases like `9 rolls in one pack` or `200 ml per tube`.
@@ -566,9 +569,9 @@ export default function CreateInventoryItemForm({
                 ) : null}
               </div>
             </div>
-          </div>
+          </Card>
 
-          <div className="rounded-[28px] border border-[var(--border)] bg-white/50 p-5 dark:bg-white/5">
+          <Card className="rounded-[28px] border border-[var(--border)] bg-white/50 p-5 dark:bg-white/5">
             <h3 className="text-base font-semibold">Usage and reminder logic</h3>
             <p className="text-muted mt-1 text-sm">
               Track sealed stock separately from what is left in the currently opened item.
@@ -707,7 +710,7 @@ export default function CreateInventoryItemForm({
                 ) : null}
               </div>
             </div>
-          </div>
+          </Card>
         </div>
 
         <div className="grid gap-5 md:grid-cols-4">
@@ -868,11 +871,7 @@ export default function CreateInventoryItemForm({
           ) : null}
         </div>
 
-        {serverError ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
-            {serverError}
-          </div>
-        ) : null}
+        {serverError ? <Alert variant="error">{serverError}</Alert> : null}
 
         <div className="grid gap-4 md:grid-cols-3">
           <div className="soft-card p-4">
@@ -932,15 +931,15 @@ export default function CreateInventoryItemForm({
         </div>
 
         <div className="flex justify-end">
-          <button
+          <Button
             type="submit"
             disabled={isSubmitting}
-            className="rounded-2xl bg-black px-5 py-3 text-sm font-medium text-white disabled:opacity-60 dark:bg-white dark:text-black"
+            className="px-5 py-3"
           >
             {isSubmitting ? "Creating..." : "Create inventory item"}
-          </button>
+          </Button>
         </div>
       </form>
-    </div>
+    </Card>
   );
 }

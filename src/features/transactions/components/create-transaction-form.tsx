@@ -5,6 +5,9 @@ import { ArrowRightLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   createTransactionSchema,
   transactionTypes,
@@ -390,7 +393,7 @@ export default function CreateTransactionForm({
       : 0;
 
   return (
-    <div className="glass-card mt-8 overflow-hidden">
+    <Card className="mt-8 overflow-hidden">
       <div className="border-b border-[var(--border)] px-6 py-5">
         <div className="flex items-start gap-3">
           <div className="rounded-2xl bg-black/90 p-3 text-white dark:bg-white dark:text-black">
@@ -634,26 +637,22 @@ export default function CreateTransactionForm({
           </div>
         </div>
 
-        {serverError ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
-            {serverError}
-          </div>
-        ) : null}
+        {serverError ? <Alert variant="error" className="rounded-xl">{serverError}</Alert> : null}
 
         <div className="flex justify-end">
-          <button
+          <Button
             type="submit"
             disabled={isSubmitting}
-            className="rounded-2xl bg-black px-5 py-3 text-sm font-medium text-white shadow-lg transition hover:-translate-y-0.5 hover:opacity-95 disabled:opacity-50 dark:bg-white dark:text-black"
+            className="px-5 py-3"
           >
             {isSubmitting
               ? "Saving..."
               : mode === "edit"
               ? "Update Transaction"
               : "Create Transaction"}
-          </button>
+          </Button>
         </div>
       </form>
-    </div>
+    </Card>
   );
 }

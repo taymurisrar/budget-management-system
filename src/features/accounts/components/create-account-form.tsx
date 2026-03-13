@@ -17,6 +17,13 @@ import { useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import type { z } from "zod";
 import CurrencySelect from "@/components/currency-select";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { FormError, FormLabel, Input, Select, Textarea, inputClassName } from "@/components/ui/form-controls";
+import AccountCheckboxField from "@/features/accounts/components/account-checkbox-field";
+import AccountFormSection from "@/features/accounts/components/account-form-section";
+import AccountIconOptionButton from "@/features/accounts/components/account-icon-option-button";
 import {
   createAccountSchema,
   type CreateAccountFormValues,
@@ -92,12 +99,11 @@ function isApiErrorResponse(value: CreateAccountResponse | null): value is ApiEr
 }
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
-  return <label className="mb-2 block text-sm font-medium">{children}</label>;
+  return <FormLabel>{children}</FormLabel>;
 }
 
 function FieldError({ message }: { message?: string }) {
-  if (!message) return null;
-  return <p className="mt-2 text-sm text-red-600">{message}</p>;
+  return <FormError message={message} />;
 }
 
 export default function CreateAccountForm({
@@ -148,11 +154,10 @@ export default function CreateAccountForm({
 
   const selectedGroup = useWatch({ control, name: "group" });
   const selectedSubtype = useWatch({ control, name: "subtype" });
+  const selectedIconKey = useWatch({ control, name: "iconKey" });
   const selectedCategoryId = useWatch({ control, name: "categoryId" });
 
-  const subtypeOptions = useMemo(() => {
-    return subtypeOptionsByGroup[selectedGroup] ?? [];
-  }, [selectedGroup]);
+  const subtypeOptions = useMemo(() => subtypeOptionsByGroup[selectedGroup] ?? [], [selectedGroup]);
   const selectedCategory = useMemo(
     () => categories.find((category) => category.id === selectedCategoryId),
     [categories, selectedCategoryId]
@@ -195,7 +200,7 @@ export default function CreateAccountForm({
   };
 
   return (
-    <div className="glass-card mt-8 overflow-hidden">
+    <Card className="overflow-hidden">
       <div className="border-b border-[var(--border)] px-6 py-5">
         <div className="flex items-start gap-3">
           <div className="rounded-2xl bg-black/90 p-3 text-white dark:bg-white dark:text-black">
@@ -211,333 +216,311 @@ export default function CreateAccountForm({
         </div>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 px-6 py-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 px-6 py-6">
         <input type="hidden" {...register("userId")} />
 
-        <div className="grid gap-5 md:grid-cols-2">
-          <div>
-            <FieldLabel>Account Group</FieldLabel>
-            <select
-              {...register("group", {
-                onChange: (e) => {
-                  const group = e.target.value;
-                  const firstSubtype = subtypeOptionsByGroup[group]?.[0];
-                  if (firstSubtype) {
-                    setValue("subtype", firstSubtype as CreateAccountFormValues["subtype"]);
-                    setValue("iconKey", firstSubtype);
-                  }
-                },
-              })}
-              className="w-full px-4 py-3"
-            >
-              {accountGroups.map((group) => (
-                <option key={group} value={group}>
-                  {group.replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}
-                </option>
-              ))}
-            </select>
-            <FieldError message={errors.group?.message} />
-          </div>
-
-          <div>
-            <FieldLabel>Subtype</FieldLabel>
-            <select
-              {...register("subtype", {
-                onChange: (e) => setValue("iconKey", e.target.value),
-              })}
-              className="w-full px-4 py-3"
-            >
-              {subtypeOptions.map((subtype) => (
-                <option key={subtype} value={subtype}>
-                  {subtype.replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}
-                </option>
-              ))}
-            </select>
-            <FieldError message={errors.subtype?.message} />
-          </div>
-
-          <div className="md:col-span-2">
-            <FieldLabel>Icon</FieldLabel>
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-              {iconOptions
-                .filter((item) => item.value === selectedSubtype || subtypeOptions.includes(item.value))
-                .map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <button
-                      type="button"
-                      key={item.value}
-                      onClick={() => setValue("iconKey", item.value)}
-                      className="flex items-center gap-2 rounded-xl border px-4 py-3 text-sm hover:bg-black/5 dark:hover:bg-white/5"
-                    >
-                      <Icon className="h-4 w-4" />
-                      {item.label}
-                    </button>
-                  );
-                })}
-            </div>
-            <input type="hidden" {...register("iconKey")} />
-            <FieldError message={errors.iconKey?.message} />
-          </div>
-
-          <div className="md:col-span-2">
-            <FieldLabel>Name of Account</FieldLabel>
-            <input
-              {...register("name")}
-              className="w-full px-4 py-3"
-              placeholder="e.g. CBQ Salary Account, Meezan Savings, HBL Credit Card"
-            />
-            <FieldError message={errors.name?.message} />
-          </div>
-
-          <div className="md:col-span-2">
-            <FieldLabel>Note / Description</FieldLabel>
-            <textarea
-              {...register("note")}
-              className="w-full rounded-xl px-4 py-3"
-              rows={3}
-              placeholder="Optional notes about this account"
-            />
-            <FieldError message={errors.note?.message} />
-          </div>
-
-          <div>
-            <FieldLabel>Global Category</FieldLabel>
-            <select {...register("categoryId")} className="w-full px-4 py-3">
-              <option value="">Optional classification</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-            <FieldError message={errors.categoryId?.message} />
-          </div>
-
-          <div>
-            <FieldLabel>Global Subcategory</FieldLabel>
-            <select
-              {...register("subcategoryId")}
-              className="w-full px-4 py-3"
-              disabled={!selectedCategory}
-            >
-              <option value="">Optional subcategory</option>
-              {(selectedCategory?.subcategories ?? []).map((subcategory) => (
-                <option key={subcategory.id} value={subcategory.id}>
-                  {subcategory.name}
-                </option>
-              ))}
-            </select>
-            <FieldError message={errors.subcategoryId?.message} />
-          </div>
-
-          <div>
-            <FieldLabel>Currency</FieldLabel>
-            <CurrencySelect {...register("currencyCode")} className="w-full px-4 py-3" />
-            <FieldError message={errors.currencyCode?.message} />
-          </div>
-
-          {(selectedGroup === "debit" || selectedGroup === "borrow_lend" || selectedGroup === "credit") && (
+        <AccountFormSection
+          title="Account basics"
+          description="Set the account type, naming, icon, and classification."
+        >
+          <div className="grid gap-5 md:grid-cols-2">
             <div>
-              <FieldLabel>Balance</FieldLabel>
-              <input
-                type="number"
-                step="0.01"
-                {...register("balance", { valueAsNumber: true })}
-                className="w-full px-4 py-3"
-                placeholder="0.00"
-              />
-              <FieldError message={errors.balance?.message} />
+              <FieldLabel>Account Group</FieldLabel>
+              <Select
+                {...register("group", {
+                  onChange: (e) => {
+                    const group = e.target.value;
+                    const firstSubtype = subtypeOptionsByGroup[group]?.[0];
+                    if (firstSubtype) {
+                      setValue("subtype", firstSubtype as CreateAccountFormValues["subtype"]);
+                      setValue("iconKey", firstSubtype);
+                    }
+                  },
+                })}
+              >
+                {accountGroups.map((group) => (
+                  <option key={group} value={group}>
+                    {group.replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                  </option>
+                ))}
+              </Select>
+              <FieldError message={errors.group?.message} />
             </div>
-          )}
 
-          {selectedGroup === "credit" && (
-            <>
-              <div>
-                <FieldLabel>Credit Limit</FieldLabel>
-                <input
-                  type="number"
-                  step="0.01"
-                  {...register("creditLimit", { valueAsNumber: true })}
-                  className="w-full px-4 py-3"
-                  placeholder="0.00"
-                />
-                <FieldError message={errors.creditLimit?.message} />
-              </div>
+            <div>
+              <FieldLabel>Subtype</FieldLabel>
+              <Select
+                {...register("subtype", {
+                  onChange: (e) => setValue("iconKey", e.target.value),
+                })}
+              >
+                {subtypeOptions.map((subtype) => (
+                  <option key={subtype} value={subtype}>
+                    {subtype.replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                  </option>
+                ))}
+              </Select>
+              <FieldError message={errors.subtype?.message} />
+            </div>
 
-              <div>
-                <FieldLabel>Owed</FieldLabel>
-                <input
-                  type="number"
-                  step="0.01"
-                  {...register("owed", { valueAsNumber: true })}
-                  className="w-full px-4 py-3"
-                  placeholder="0.00"
-                />
-                <FieldError message={errors.owed?.message} />
-              </div>
-
-              <div>
-                <FieldLabel>Billing Date</FieldLabel>
-                <input type="date" {...register("billingDate")} className="w-full px-4 py-3" />
-                <FieldError message={errors.billingDate?.message} />
-              </div>
-
-              <div>
-                <FieldLabel>Due Date</FieldLabel>
-                <input type="date" {...register("dueDate")} className="w-full px-4 py-3" />
-                <FieldError message={errors.dueDate?.message} />
-              </div>
-
-              <div className="flex items-center gap-3 rounded-xl border px-4 py-3">
-                <input type="checkbox" {...register("reminder")} />
-                <span className="text-sm">Enable payment reminder</span>
-              </div>
-            </>
-          )}
-
-          {selectedGroup === "borrow_lend" && (
-            <>
-              <div>
-                <FieldLabel>Source / Destination Account</FieldLabel>
-                <input
-                  {...register("sourceAccountId")}
-                  className="w-full px-4 py-3"
-                  placeholder="Account ID or later replace with dropdown"
-                />
-                <FieldError message={errors.sourceAccountId?.message} />
-              </div>
-
-              <div>
-                <FieldLabel>Start Date</FieldLabel>
-                <input type="date" {...register("startDate")} className="w-full px-4 py-3" />
-                <FieldError message={errors.startDate?.message} />
-              </div>
-
-              <div>
-                <FieldLabel>Due Date</FieldLabel>
-                <input type="date" {...register("dueDate")} className="w-full px-4 py-3" />
-                <FieldError message={errors.dueDate?.message} />
-              </div>
-            </>
-          )}
-
-          {selectedGroup === "invest" && (
-            <>
-              {selectedSubtype === "precious_metal" && (
-                <>
-                  <div>
-                    <FieldLabel>Metal Type</FieldLabel>
-                    <select {...register("metalType")} className="w-full px-4 py-3">
-                      <option value="">Select metal</option>
-                      <option value="gold">Gold</option>
-                      <option value="silver">Silver</option>
-                      <option value="platinum">Platinum</option>
-                    </select>
-                    <FieldError message={errors.metalType?.message} />
-                  </div>
-
-                  <div>
-                    <FieldLabel>Purity</FieldLabel>
-                    <select {...register("metalPurity")} className="w-full px-4 py-3">
-                      <option value="">Select purity</option>
-                      <option value="24k">24K</option>
-                      <option value="22k">22K</option>
-                      <option value="21k">21K</option>
-                      <option value="18k">18K</option>
-                      <option value="999">999</option>
-                      <option value="925">925</option>
-                    </select>
-                    <FieldError message={errors.metalPurity?.message} />
-                  </div>
-
-                  <div>
-                    <FieldLabel>Weight</FieldLabel>
-                    <input
-                      type="number"
-                      step="0.001"
-                      {...register("metalWeight", { valueAsNumber: true })}
-                      className="w-full px-4 py-3"
-                      placeholder="0"
+            <div className="md:col-span-2">
+              <FieldLabel>Icon</FieldLabel>
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                {iconOptions
+                  .filter((item) => item.value === selectedSubtype || subtypeOptions.includes(item.value))
+                  .map((item) => (
+                    <AccountIconOptionButton
+                      key={item.value}
+                      icon={item.icon}
+                      label={item.label}
+                      selected={selectedIconKey === item.value}
+                      onClick={() => setValue("iconKey", item.value)}
                     />
-                    <FieldError message={errors.metalWeight?.message} />
-                  </div>
+                  ))}
+              </div>
+              <input type="hidden" {...register("iconKey")} />
+              <FieldError message={errors.iconKey?.message} />
+            </div>
 
-                  <div>
-                    <FieldLabel>Unit</FieldLabel>
-                    <select {...register("metalUnit")} className="w-full px-4 py-3">
-                      <option value="gram">Gram</option>
-                      <option value="tola">Tola</option>
-                      <option value="ounce">Ounce</option>
-                    </select>
-                    <FieldError message={errors.metalUnit?.message} />
-                  </div>
-                </>
-              )}
+            <div className="md:col-span-2">
+              <FieldLabel>Name of Account</FieldLabel>
+              <Input
+                {...register("name")}
+                placeholder="e.g. CBQ Salary Account, Meezan Savings, HBL Credit Card"
+              />
+              <FieldError message={errors.name?.message} />
+            </div>
 
-              {["psx_stock", "cdc_account", "mutual_fund_pk", "national_savings", "roshan_investment", "forex_holding", "crypto_wallet"].includes(
-                selectedSubtype
-              ) && (
-                <div className="md:col-span-2 rounded-2xl border border-[var(--border)] bg-white/50 p-4 dark:bg-white/5">
-                  <p className="text-sm font-medium">Pakistan-focused investment setup</p>
-                  <p className="text-muted mt-1 text-sm">
-                    Good. This is the part where we stop pretending all investing means “US stocks only”.
-                    You can later extend this with broker name, account number, symbol/fund code, units,
-                    average buy price, and current valuation.
-                  </p>
+            <div className="md:col-span-2">
+              <FieldLabel>Note / Description</FieldLabel>
+              <Textarea
+                {...register("note")}
+                rows={3}
+                placeholder="Optional notes about this account"
+              />
+              <FieldError message={errors.note?.message} />
+            </div>
+
+            <div>
+              <FieldLabel>Global Category</FieldLabel>
+              <Select {...register("categoryId")}>
+                <option value="">Optional classification</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </Select>
+              <FieldError message={errors.categoryId?.message} />
+            </div>
+
+            <div>
+              <FieldLabel>Global Subcategory</FieldLabel>
+              <Select {...register("subcategoryId")} disabled={!selectedCategory}>
+                <option value="">Optional subcategory</option>
+                {(selectedCategory?.subcategories ?? []).map((subcategory) => (
+                  <option key={subcategory.id} value={subcategory.id}>
+                    {subcategory.name}
+                  </option>
+                ))}
+              </Select>
+              <FieldError message={errors.subcategoryId?.message} />
+            </div>
+
+            <div>
+              <FieldLabel>Currency</FieldLabel>
+              <CurrencySelect {...register("currencyCode")} className={inputClassName()} />
+              <FieldError message={errors.currencyCode?.message} />
+            </div>
+          </div>
+        </AccountFormSection>
+
+        <AccountFormSection
+          title="Financial settings"
+          description="Fields adapt to the selected group and subtype."
+        >
+          <div className="grid gap-5 md:grid-cols-2">
+            {(selectedGroup === "debit" || selectedGroup === "borrow_lend" || selectedGroup === "credit") && (
+              <div>
+                <FieldLabel>Balance</FieldLabel>
+                <Input
+                  type="number"
+                  step="0.01"
+                  {...register("balance", { valueAsNumber: true })}
+                  placeholder="0.00"
+                />
+                <FieldError message={errors.balance?.message} />
+              </div>
+            )}
+
+            {selectedGroup === "credit" && (
+              <>
+                <div>
+                  <FieldLabel>Credit Limit</FieldLabel>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    {...register("creditLimit", { valueAsNumber: true })}
+                    placeholder="0.00"
+                  />
+                  <FieldError message={errors.creditLimit?.message} />
                 </div>
-              )}
-            </>
-          )}
 
-          <div>
-            <FieldLabel>Chart Color</FieldLabel>
-            <input type="color" {...register("chartColor")} className="h-12 w-full rounded-xl" />
-            <FieldError message={errors.chartColor?.message} />
+                <div>
+                  <FieldLabel>Owed</FieldLabel>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    {...register("owed", { valueAsNumber: true })}
+                    placeholder="0.00"
+                  />
+                  <FieldError message={errors.owed?.message} />
+                </div>
+
+                <div>
+                  <FieldLabel>Billing Date</FieldLabel>
+                  <Input type="date" {...register("billingDate")} />
+                  <FieldError message={errors.billingDate?.message} />
+                </div>
+
+                <div>
+                  <FieldLabel>Due Date</FieldLabel>
+                  <Input type="date" {...register("dueDate")} />
+                  <FieldError message={errors.dueDate?.message} />
+                </div>
+
+                <AccountCheckboxField label="Enable payment reminder" {...register("reminder")} />
+              </>
+            )}
+
+            {selectedGroup === "borrow_lend" && (
+              <>
+                <div>
+                  <FieldLabel>Source / Destination Account</FieldLabel>
+                  <Input
+                    {...register("sourceAccountId")}
+                    placeholder="Account ID or later replace with dropdown"
+                  />
+                  <FieldError message={errors.sourceAccountId?.message} />
+                </div>
+
+                <div>
+                  <FieldLabel>Start Date</FieldLabel>
+                  <Input type="date" {...register("startDate")} />
+                  <FieldError message={errors.startDate?.message} />
+                </div>
+
+                <div>
+                  <FieldLabel>Due Date</FieldLabel>
+                  <Input type="date" {...register("dueDate")} />
+                  <FieldError message={errors.dueDate?.message} />
+                </div>
+              </>
+            )}
+
+            {selectedGroup === "invest" && (
+              <>
+                {selectedSubtype === "precious_metal" && (
+                  <>
+                    <div>
+                      <FieldLabel>Metal Type</FieldLabel>
+                      <Select {...register("metalType")}>
+                        <option value="">Select metal</option>
+                        <option value="gold">Gold</option>
+                        <option value="silver">Silver</option>
+                        <option value="platinum">Platinum</option>
+                      </Select>
+                      <FieldError message={errors.metalType?.message} />
+                    </div>
+
+                    <div>
+                      <FieldLabel>Purity</FieldLabel>
+                      <Select {...register("metalPurity")}>
+                        <option value="">Select purity</option>
+                        <option value="24k">24K</option>
+                        <option value="22k">22K</option>
+                        <option value="21k">21K</option>
+                        <option value="18k">18K</option>
+                        <option value="999">999</option>
+                        <option value="925">925</option>
+                      </Select>
+                      <FieldError message={errors.metalPurity?.message} />
+                    </div>
+
+                    <div>
+                      <FieldLabel>Weight</FieldLabel>
+                      <Input
+                        type="number"
+                        step="0.001"
+                        {...register("metalWeight", { valueAsNumber: true })}
+                        placeholder="0"
+                      />
+                      <FieldError message={errors.metalWeight?.message} />
+                    </div>
+
+                    <div>
+                      <FieldLabel>Unit</FieldLabel>
+                      <Select {...register("metalUnit")}>
+                        <option value="gram">Gram</option>
+                        <option value="tola">Tola</option>
+                        <option value="ounce">Ounce</option>
+                      </Select>
+                      <FieldError message={errors.metalUnit?.message} />
+                    </div>
+                  </>
+                )}
+
+                {["psx_stock", "cdc_account", "mutual_fund_pk", "national_savings", "roshan_investment", "forex_holding", "crypto_wallet"].includes(
+                  selectedSubtype
+                ) && (
+                  <Alert variant="info" className="md:col-span-2">
+                    <p className="font-medium">Pakistan-focused investment setup</p>
+                    <p className="text-muted mt-1">
+                      Extend this later with broker details, symbol or fund code, units, cost basis, and valuation.
+                    </p>
+                  </Alert>
+                )}
+              </>
+            )}
+
+            <div>
+              <FieldLabel>Chart Color</FieldLabel>
+              <input type="color" {...register("chartColor")} className="h-12 w-full rounded-xl" />
+              <FieldError message={errors.chartColor?.message} />
+            </div>
+
+            <div className="space-y-3">
+              <AccountCheckboxField label="Count in assets" {...register("countInAsset")} />
+              <AccountCheckboxField label="Hide balance" {...register("hideBalance")} />
+            </div>
           </div>
+        </AccountFormSection>
 
-          <div className="space-y-3">
-            <label className="flex items-center gap-3 rounded-xl border px-4 py-3">
-              <input type="checkbox" {...register("countInAsset")} />
-              <span className="text-sm">Count in assets</span>
-            </label>
-
-            <label className="flex items-center gap-3 rounded-xl border px-4 py-3">
-              <input type="checkbox" {...register("hideBalance")} />
-              <span className="text-sm">Hide balance</span>
-            </label>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-[var(--border)] bg-white/50 p-4 dark:bg-white/5">
+        <Card className="rounded-2xl border border-[var(--border)] bg-white/50 p-4 dark:bg-white/5">
           <div className="flex items-start gap-3">
             <Sparkles className="mt-0.5 h-4 w-4 text-blue-600" />
             <div className="text-sm">
               <p className="font-medium">Design note</p>
               <p className="text-muted mt-1">
-                Keep common fields on the base account, and store subtype-specific fields separately or in a metadata JSON column.
-                Otherwise this turns into a swamp by sprint three.
+                Keep common fields on the base account, and store subtype-specific fields separately or in a metadata
+                JSON column. Otherwise this turns into a swamp by sprint three.
               </p>
             </div>
           </div>
-        </div>
+        </Card>
 
-        {serverError && (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
+        {serverError ? (
+          <Alert variant="error" className="rounded-xl">
             {serverError}
-          </div>
-        )}
+          </Alert>
+        ) : null}
 
         <div className="flex justify-end">
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="rounded-2xl bg-black px-5 py-3 text-sm font-medium text-white shadow-lg transition hover:-translate-y-0.5 hover:opacity-95 disabled:opacity-50 dark:bg-white dark:text-black"
-          >
+          <Button type="submit" disabled={isSubmitting} className="px-5 py-3">
             {isSubmitting ? "Creating..." : "Create Account"}
-          </button>
+          </Button>
         </div>
       </form>
-    </div>
+    </Card>
   );
 }

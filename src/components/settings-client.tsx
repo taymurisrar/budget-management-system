@@ -19,6 +19,8 @@ import { useRouter } from "next/navigation";
 import CurrencySelect from "@/components/currency-select";
 import LocalizedDateText from "@/components/localized-date-text";
 import ThemeToggle from "@/components/theme-toggle";
+import { Card } from "@/components/ui/card";
+import { Toggle } from "@/components/ui/toggle";
 import TransactionCategoryManagementClient from "@/features/transactions/components/transaction-category-management-client";
 
 type LocalPreferences = {
@@ -131,14 +133,7 @@ function ToggleRow({
         <p className="text-sm font-semibold">{title}</p>
         <p className="text-muted mt-1 text-sm">{description}</p>
       </div>
-      <button
-        type="button"
-        aria-pressed={checked}
-        onClick={onToggle}
-        className={`settings-switch ${checked ? "settings-switch--active" : ""}`}
-      >
-        <span className="settings-switch__thumb" />
-      </button>
+      <Toggle checked={checked} onClick={onToggle} />
     </div>
   );
 }
@@ -151,10 +146,10 @@ function Panel({
   children: React.ReactNode;
 }) {
   return (
-    <section className="glass-card rounded-[28px] p-6">
+    <Card as={"section"} className="rounded-[28px] p-6">
       <h2 className="text-lg font-semibold">{title}</h2>
       <div className="mt-4">{children}</div>
-    </section>
+    </Card>
   );
 }
 

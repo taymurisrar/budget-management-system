@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import { Pencil, Plus, Tags, Trash2 } from "lucide-react";
 import { useState } from "react";
 import LocalizedDateText from "@/components/localized-date-text";
+import { Badge } from "@/components/ui/badge";
+import { Button, buttonClassName } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { getAccountIcon, getTransactionCategoryIcon } from "@/features/transactions/transaction-option-icons";
 
 type TransactionListItem = {
@@ -81,13 +84,13 @@ export default function TransactionManagementClient({
         <div className="flex flex-wrap gap-3">
           <Link
             href="/settings"
-            className="rounded-2xl border border-[var(--border)] px-4 py-2.5 text-sm font-medium shadow-sm"
+            className={buttonClassName({ variant: "secondary", size: "md", className: "shadow-sm" })}
           >
             Manage Global Categories
           </Link>
           <Link
             href="/transactions/new"
-            className="inline-flex items-center gap-2 rounded-2xl bg-black px-4 py-2.5 text-sm font-medium text-white shadow-lg dark:bg-white dark:text-black"
+            className={buttonClassName({ size: "md" })}
           >
             <Plus className="h-4 w-4" />
             New Transaction
@@ -103,10 +106,7 @@ export default function TransactionManagementClient({
           );
 
           return (
-            <div
-              key={transaction.id}
-              className="glass-card rounded-[28px] p-5"
-            >
+            <Card key={transaction.id} className="rounded-[28px] p-5">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div className="flex min-w-0 gap-4">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-black/90 text-white dark:bg-white dark:text-black">
@@ -116,9 +116,9 @@ export default function TransactionManagementClient({
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="text-base font-semibold capitalize">{transaction.type}</p>
-                      <span className="rounded-full bg-black/5 px-2.5 py-1 text-xs dark:bg-white/10">
+                      <Badge>
                         <LocalizedDateText value={transaction.transactionDate} kind="datetime" />
-                      </span>
+                      </Badge>
                     </div>
                     <p className="text-muted mt-2 text-sm">
                       {transaction.type === "transfer" && transaction.transferAccount
@@ -127,11 +127,11 @@ export default function TransactionManagementClient({
                     </p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {transaction.category ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1 text-xs text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">
+                        <Badge variant="blue" className="inline-flex items-center gap-1 px-3 py-1">
                           <CategoryIcon className="h-3.5 w-3.5" />
                           {transaction.category.name}
                           {transaction.subcategory ? ` / ${transaction.subcategory.name}` : ""}
-                        </span>
+                        </Badge>
                       ) : null}
                       {transaction.tags.map((tag) => (
                         <span
@@ -176,34 +176,34 @@ export default function TransactionManagementClient({
                   <div className="flex gap-2">
                     <Link
                       href={`/transactions/${transaction.id}/edit`}
-                      className="inline-flex items-center gap-2 rounded-2xl border border-[var(--border)] px-3 py-2 text-sm"
+                      className={buttonClassName({ variant: "secondary", size: "sm" })}
                     >
                       <Pencil className="h-4 w-4" />
                       Edit
                     </Link>
-                    <button
-                      type="button"
+                    <Button
                       disabled={deletingId === transaction.id}
                       onClick={() => void deleteTransaction(transaction.id)}
-                      className="inline-flex items-center gap-2 rounded-2xl border border-red-200 px-3 py-2 text-sm text-red-700 disabled:opacity-50 dark:border-red-500/20 dark:text-red-300"
+                      variant="danger"
+                      size="sm"
                     >
                       <Trash2 className="h-4 w-4" />
                       {deletingId === transaction.id ? "Deleting..." : "Delete"}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>
-            </div>
+            </Card>
           );
         })}
 
         {transactions.length === 0 ? (
-          <div className="glass-card rounded-[28px] p-8 text-center">
+          <Card className="rounded-[28px] p-8 text-center">
             <p className="text-lg font-semibold">No transactions yet</p>
             <p className="text-muted mt-2">
               Create your first income, expense, or transfer entry to start tracking activity.
             </p>
-          </div>
+          </Card>
         ) : null}
       </div>
     </div>
