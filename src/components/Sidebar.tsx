@@ -2,64 +2,87 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import {
   ArrowRightLeft,
   Boxes,
   CircleDollarSign,
   CreditCard,
-  House,
   LayoutDashboard,
-  PiggyBank,
+  LogOut,
+  Menu,
+  Settings,
+  Target,
+  X,
 } from "lucide-react";
 
 const navItems = [
-  { label: "Home", href: "/", icon: House, hint: "Overview" },
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, hint: "Signals" },
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, hint: "Home" },
   { label: "Accounts", href: "/accounts", icon: CreditCard, hint: "Balances" },
   { label: "Transactions", href: "/transactions", icon: ArrowRightLeft, hint: "Activity" },
-  { label: "Budgets", href: "/budgets", icon: PiggyBank, hint: "Planning" },
-  { label: "Inventory", href: "/inventory", icon: Boxes, hint: "Home stock" },
+  { label: "Inventory", href: "/inventory", icon: Boxes, hint: "Stock" },
+  { label: "Goals", href: "/goals", icon: Target, hint: "Targets" },
+  { label: "Settings", href: "/settings", icon: Settings, hint: "Controls" },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  function isItemActive(href: string) {
+    return pathname === href || pathname.startsWith(`${href}/`);
+  }
 
   return (
-    <aside className="app-sidebar">
+    <aside className={`app-sidebar ${mobileOpen ? "app-sidebar--open" : ""}`}>
+      <div className="app-sidebar__mobile-bar">
+        <Link href="/dashboard" className="app-sidebar__mobile-brand">
+          <span className="app-sidebar__brand-mark">
+            <CircleDollarSign className="h-5 w-5" />
+          </span>
+          <span>
+            <span className="app-sidebar__eyebrow">Finance OS</span>
+            <span className="app-sidebar__title app-sidebar__title--mobile">Budget Tracker</span>
+          </span>
+        </Link>
+
+        <button
+          type="button"
+          className="app-sidebar__toggle"
+          aria-expanded={mobileOpen}
+          aria-label={mobileOpen ? "Close navigation" : "Open navigation"}
+          onClick={() => setMobileOpen((current) => !current)}
+        >
+          {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </button>
+      </div>
+
+      <div
+        className={`app-sidebar__overlay ${mobileOpen ? "app-sidebar__overlay--visible" : ""}`}
+        onClick={() => setMobileOpen(false)}
+      />
+
       <div className="app-sidebar__panel">
         <div className="app-sidebar__brand">
-          <div className="app-sidebar__brand-mark">
+          <Link href="/dashboard" className="app-sidebar__brand-mark">
             <CircleDollarSign className="h-5 w-5" />
-          </div>
+          </Link>
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-sky-200/70">
-              Finance OS
-            </p>
-            <h2 className="text-xl font-semibold tracking-[-0.04em] text-white">
-              Budget Tracker
-            </h2>
+            <p className="app-sidebar__eyebrow">Finance OS</p>
+            <h2 className="app-sidebar__title">Budget Tracker</h2>
           </div>
         </div>
 
-        <div className="app-sidebar__summary">
-          <p className="text-sm font-medium text-white/90">Control center</p>
-          <p className="mt-1 text-sm leading-6 text-slate-300">
-            Track cash flow, budgets, and household inventory from one place.
-          </p>
-        </div>
-
-        <nav className="app-sidebar__nav">
+        <nav className={`app-sidebar__nav ${mobileOpen ? "app-sidebar__nav--open" : ""}`}>
           {navItems.map((item) => {
-            const isActive =
-              item.href === "/"
-                ? pathname === item.href
-                : pathname === item.href || pathname.startsWith(`${item.href}/`);
+            const isActive = isItemActive(item.href);
             const Icon = item.icon;
 
             return (
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={() => setMobileOpen(false)}
                 className={`app-sidebar__link ${isActive ? "app-sidebar__link--active" : ""}`}
               >
                 <span className="app-sidebar__icon">
@@ -67,7 +90,7 @@ export default function Sidebar() {
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm font-medium">{item.label}</span>
-                  <span className="block text-xs text-slate-400">{item.hint}</span>
+                  <span className="app-sidebar__hint">{item.hint}</span>
                 </span>
               </Link>
             );
@@ -75,12 +98,10 @@ export default function Sidebar() {
         </nav>
 
         <div className="app-sidebar__footer">
-          <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-slate-300">
-            Personal finance
-          </span>
-          <p className="mt-3 text-sm text-slate-400">
-            Cleaner navigation, faster scanning, better daily use.
-          </p>
+          <Link href="/" className="app-sidebar__logout" onClick={() => setMobileOpen(false)}>
+            <LogOut className="h-4 w-4" />
+            <span>Logout</span>
+          </Link>
         </div>
       </div>
     </aside>

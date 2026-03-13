@@ -63,19 +63,27 @@ enum BudgetPeriod {
 
 enum InventoryUnit {
   piece
+  small_piece
+  large_piece
   pack
+  box
+  bag
   bottle
   tube
   kg
   g
+  lb
+  oz
   l
   ml
-  box
-  bag
   roll
   tray
   can
   jar
+  carton
+  sachet
+  dozen
+  gallon
 }
 
 enum InventoryItemType {
@@ -92,6 +100,12 @@ enum InventoryConsumptionSource {
 enum InventoryPurchaseSource {
   manual
   imported
+}
+
+enum InventoryItemRevisionType {
+  created
+  updated
+  restocked
 }
 
 model User {
@@ -112,6 +126,7 @@ model User {
   inventoryItems      InventoryItem[]
   inventoryPurchases  InventoryPurchase[]
   inventoryUsageLogs  InventoryConsumption[]
+  inventoryItemRevisions InventoryItemRevision[]
 }
 
 model Account {
@@ -211,6 +226,7 @@ model Transaction {
   merchant          String?
   referenceNumber   String?
   externalReference String?
+  tags              String[]          @default([])
   note              String?
   location          String?
   isRecurring       Boolean           @default(false)
@@ -278,6 +294,7 @@ model InventoryCategory {
 
   user  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   items InventoryItem[]
+  revisions InventoryItemRevision[]
 
   @@unique([userId, name])
   @@index([userId])
@@ -289,17 +306,27 @@ model InventoryItem {
   categoryId             String
   name                   String
   brand                  String?
+  subcategory            String?
+  tags                   String[]          @default([])
   sku                    String?
   barcode                String?
   itemType               InventoryItemType @default(consumable)
   unit                   InventoryUnit
   currentQuantity        Decimal           @db.Decimal(12, 3)
+  inUseQuantity          Decimal?          @db.Decimal(12, 3)
   minQuantity            Decimal           @db.Decimal(12, 3)
   maxQuantity            Decimal?          @db.Decimal(12, 3)
   reorderQuantity        Decimal?          @db.Decimal(12, 3)
+  packageQuantity        Decimal?          @db.Decimal(12, 3)
+  packageUnit            InventoryUnit?
+  unitSizeValue          Decimal?          @db.Decimal(12, 3)
+  unitSizeUnit           InventoryUnit?
+  householdUserCount     Int               @default(1)
+  restockFrequencyDays   Int?
   preferredCurrencyCode  String            @default("QAR")
   averageUnitCost        Decimal?          @db.Decimal(12, 3)
   lastUnitCost           Decimal?          @db.Decimal(12, 3)
+  lastPurchaseTotalCost  Decimal?          @db.Decimal(12, 3)
   estimatedDailyUsage    Decimal?          @db.Decimal(12, 3)
   estimatedDaysRemaining Int?
   lastPurchaseDate       DateTime?
@@ -320,14 +347,58 @@ model InventoryItem {
   category     InventoryCategory      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   purchases    InventoryPurchase[]
   consumptions InventoryConsumption[]
+  revisions    InventoryItemRevision[]
 
   @@unique([userId, categoryId, name])
   @@index([userId])
   @@index([categoryId])
+  @@index([subcategory])
   @@index([name])
   @@index([isActive])
   @@index([nextRestockDate])
   @@index([expiryDate])
+}
+
+model InventoryItemRevision {
+  id                    String                    @id @default(cuid())
+  userId                String
+  itemId                String
+  categoryId            String
+  revisionType          InventoryItemRevisionType
+  name                  String
+  brand                 String?
+  subcategory           String?
+  tags                  String[]                  @default([])
+  unit                  InventoryUnit
+  currentQuantity       Decimal                   @db.Decimal(12, 3)
+  inUseQuantity         Decimal?                  @db.Decimal(12, 3)
+  minQuantity           Decimal                   @db.Decimal(12, 3)
+  reorderQuantity       Decimal?                  @db.Decimal(12, 3)
+  packageQuantity       Decimal?                  @db.Decimal(12, 3)
+  packageUnit           InventoryUnit?
+  unitSizeValue         Decimal?                  @db.Decimal(12, 3)
+  unitSizeUnit          InventoryUnit?
+  householdUserCount    Int                       @default(1)
+  restockFrequencyDays  Int?
+  preferredCurrencyCode String                    @default("QAR")
+  averageUnitCost       Decimal?                  @db.Decimal(12, 3)
+  lastPurchaseTotalCost Decimal?                  @db.Decimal(12, 3)
+  estimatedDailyUsage   Decimal?                  @db.Decimal(12, 3)
+  lastPurchaseDate      DateTime?
+  lastConsumptionDate   DateTime?
+  nextRestockDate       DateTime?
+  expiryDate            DateTime?
+  notes                 String?
+  changeSummary         String?
+  createdAt             DateTime                  @default(now())
+
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item     InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  category InventoryCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([itemId, createdAt])
+  @@index([categoryId])
 }
 
 model InventoryPurchase {

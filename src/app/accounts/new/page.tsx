@@ -19,7 +19,7 @@ export default async function NewAccountPage() {
     <div className="p-6">
       <h1 className="text-2xl font-bold">New Account</h1>
       <p className="mt-2 text-gray-600">Create a new place for your money.</p>
-      <CreateAccountForm userId={user.id} />
+      <CreateAccountForm userId={user.id} defaultCurrencyCode={user.baseCurrencyCode} />
     </div>
   );
 }

@@ -93,37 +93,38 @@ export default async function NewInventoryPage() {
         <div>
           <h1 className="page-title">New Inventory Item</h1>
           <p className="text-muted mt-2 max-w-2xl">
-            Add a household item, define its unit and thresholds, and prepare it for
-            purchase logging, consumption tracking, and restock forecasting.
+            Add a household item with practical stock details like pack size, in-use quantity,
+            refill reminder level, classification tags, and cost.
           </p>
         </div>
       </div>
 
       <div className="mb-6 grid gap-4 md:grid-cols-3">
         <div className="soft-card p-5">
-          <p className="text-sm font-medium">Track what matters</p>
+          <p className="text-sm font-medium">Classify clearly</p>
           <p className="text-muted mt-2 text-sm">
-            Personal care, groceries, cleaning items, pet supplies, medicine, and more.
+            Personal care, groceries, cleaning items, pet supplies, medicine, plus subcategories and tags.
           </p>
         </div>
 
         <div className="soft-card p-5">
-          <p className="text-sm font-medium">Set thresholds</p>
+          <p className="text-sm font-medium">Match real shopping habits</p>
           <p className="text-muted mt-2 text-sm">
-            Define minimum quantity and reorder quantity so the system can flag low stock.
+            Capture packs, rolls, tubes, litres, kilos, and what is already in use at home.
           </p>
         </div>
 
         <div className="soft-card p-5">
-          <p className="text-sm font-medium">Forecast depletion</p>
+          <p className="text-sm font-medium">Keep cost context</p>
           <p className="text-muted mt-2 text-sm">
-            Add estimated daily usage to predict when an item is likely to run out.
+            Save unit cost and total paid so inventory and spending stay connected.
           </p>
         </div>
       </div>
 
       <CreateInventoryItemForm
         userId={user.id}
+        defaultCurrencyCode={user.baseCurrencyCode}
         categories={categories}
       />
     </div>

@@ -16,13 +16,13 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import type { z } from "zod";
+import CurrencySelect from "@/components/currency-select";
 import {
   createAccountSchema,
   type CreateAccountFormValues,
   type CreateAccountInput,
 } from "@/features/accounts/validations/account.schema";
-
-const currencies = ["QAR", "PKR", "USD", "EUR", "GBP", "AED", "SAR", "TRY", "JPY", "CHF"];
+import { defaultCurrencyCode } from "@/lib/currencies";
 
 const accountGroups = ["debit", "credit", "borrow_lend", "invest", "member"] as const;
 
@@ -91,7 +91,13 @@ function FieldError({ message }: { message?: string }) {
   return <p className="mt-2 text-sm text-red-600">{message}</p>;
 }
 
-export default function CreateAccountForm({ userId }: { userId: string }) {
+export default function CreateAccountForm({
+  userId,
+  defaultCurrencyCode: initialCurrencyCode = defaultCurrencyCode,
+}: {
+  userId: string;
+  defaultCurrencyCode?: string;
+}) {
   const router = useRouter();
   const [serverError, setServerError] = useState("");
   type CreateAccountFormInput = z.input<typeof createAccountSchema>;
@@ -110,7 +116,7 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
       note: "",
       group: "debit",
       subtype: "cash",
-      currencyCode: "QAR",
+      currencyCode: initialCurrencyCode,
       iconKey: "cash",
       balance: 0,
       chartColor: "#3B82F6",
@@ -279,13 +285,7 @@ export default function CreateAccountForm({ userId }: { userId: string }) {
 
           <div>
             <FieldLabel>Currency</FieldLabel>
-            <select {...register("currencyCode")} className="w-full px-4 py-3">
-              {currencies.map((currency) => (
-                <option key={currency} value={currency}>
-                  {currency}
-                </option>
-              ))}
-            </select>
+            <CurrencySelect {...register("currencyCode")} className="w-full px-4 py-3" />
             <FieldError message={errors.currencyCode?.message} />
           </div>
 

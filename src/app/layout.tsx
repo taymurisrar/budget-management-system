@@ -1,5 +1,5 @@
 import "./globals.css";
-import Sidebar from "@/components/Sidebar";
+import AppFrame from "@/components/app-frame";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -13,33 +13,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(() => {
+              try {
+                const stored = localStorage.getItem("bms-theme");
+                const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+                const theme = stored === "light" || stored === "dark" ? stored : (systemDark ? "dark" : "light");
+                document.documentElement.dataset.theme = theme;
+                document.documentElement.classList.toggle("dark", theme === "dark");
+              } catch (error) {
+                document.documentElement.dataset.theme = "light";
+                document.documentElement.classList.remove("dark");
+              }
+            })();`,
+          }}
+        />
+      </head>
       <body>
         <div className="app-backdrop" aria-hidden="true" />
-        <div className="app-shell-grid">
-          <Sidebar />
-          <main className="app-main">
-            <div className="app-main__chrome">
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-slate-500">
-                  Budget Management System
-                </p>
-                <p className="mt-1 text-sm text-slate-600">
-                  A clearer workspace for finance, planning, and inventory.
-                </p>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-slate-500">
-                <span className="rounded-full border border-slate-200 bg-white/70 px-3 py-1.5 shadow-sm">
-                  Unified workspace
-                </span>
-                <span className="hidden rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-emerald-700 shadow-sm sm:inline-flex">
-                  Live structure
-                </span>
-              </div>
-            </div>
-            <div className="app-main__content">{children}</div>
-          </main>
-        </div>
+        <AppFrame>{children}</AppFrame>
       </body>
     </html>
   );

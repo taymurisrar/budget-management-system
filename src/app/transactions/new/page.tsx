@@ -21,25 +21,30 @@ export default async function NewTransactionPage() {
         id: true,
         name: true,
         currencyCode: true,
+        iconKey: true,
       },
       orderBy: { createdAt: "asc" },
     }),
     prisma.category.findMany({
-      select: {
-        id: true,
-        name: true,
+      include: {
+        subcategories: {
+          orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+        },
       },
-      orderBy: { name: "asc" },
+      orderBy: [{ type: "asc" }, { sortOrder: "asc" }, { name: "asc" }],
     }),
   ]);
 
   return (
     <div className="app-shell py-8">
       <h1 className="page-title">New Transaction</h1>
-      <p className="text-muted mt-2">Record an income or expense.</p>
+      <p className="text-muted mt-2">
+        Record income, expense, or transfer activity with detailed classification.
+      </p>
 
       <CreateTransactionForm
         userId={user.id}
+        defaultCurrencyCode={user.baseCurrencyCode}
         accounts={accounts}
         categories={categories}
       />

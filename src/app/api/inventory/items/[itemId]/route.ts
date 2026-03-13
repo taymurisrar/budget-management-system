@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@/generated/prisma/client";
 import {
   deleteInventoryItem,
   findInventoryItemById,
@@ -11,6 +12,29 @@ type RouteContext = {
     itemId: string;
   }>;
 };
+
+function inventoryErrorResponse(error: unknown) {
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    if (error.code === "P2002") {
+      return NextResponse.json(
+        { message: "Another inventory item with this name already exists. Keep one record and update it to preserve history." },
+        { status: 409 }
+      );
+    }
+  }
+
+  if (error instanceof Error) {
+    return NextResponse.json(
+      { message: error.message || "Something went wrong while updating the inventory item" },
+      { status: 500 }
+    );
+  }
+
+  return NextResponse.json(
+    { message: "Something went wrong while updating the inventory item" },
+    { status: 500 }
+  );
+}
 
 export async function GET(_: Request, context: RouteContext) {
   const { itemId } = await context.params;
@@ -59,11 +83,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     return NextResponse.json(item);
   } catch (error) {
     console.error("Update inventory item error:", error);
-
-    return NextResponse.json(
-      { message: "Something went wrong while updating the inventory item" },
-      { status: 500 }
-    );
+    return inventoryErrorResponse(error);
   }
 }
 
