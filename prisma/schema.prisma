@@ -156,6 +156,40 @@ enum InventoryItemRevisionType {
   restocked
 }
 
+enum ZakatAssetType {
+  gold
+  silver
+  cash
+  investment
+  property
+  business_inventory
+  receivable
+  retirement
+  cryptocurrency
+  other
+}
+
+enum ZakatOwnershipRelation {
+  self
+  spouse
+  parent
+  child
+  other
+}
+
+enum ZakatMetalPurity {
+  k24
+  k22
+  k20
+  k18
+}
+
+enum ZakatAssetRevisionAction {
+  created
+  updated
+  archived
+}
+
 model User {
   id                           String   @id @default(cuid())
   name                         String
@@ -180,6 +214,9 @@ model User {
   inventoryPurchases  InventoryPurchase[]
   inventoryUsageLogs  InventoryConsumption[]
   inventoryItemRevisions InventoryItemRevision[]
+  zakatAssets         ZakatAsset[]
+  zakatPayments       ZakatPayment[]
+  zakatAssetRevisions ZakatAssetRevision[]
 }
 
 model UserSettings {
@@ -558,4 +595,71 @@ model InventoryConsumption {
   @@index([itemId])
   @@index([usageDate])
   @@index([source])
+}
+
+model ZakatAsset {
+  id                    String                 @id @default(cuid())
+  userId                String
+  name                  String
+  assetType             ZakatAssetType
+  ownershipRelation     ZakatOwnershipRelation @default(self)
+  ownerName             String?
+  countInMyAssets       Boolean                @default(true)
+  currencyCode          String
+  manualValue           Decimal?               @db.Decimal(18, 2)
+  deductibleAmount      Decimal?               @db.Decimal(18, 2)
+  metalWeightGrams      Decimal?               @db.Decimal(18, 3)
+  metalPurity           ZakatMetalPurity?
+  purchaseDate          DateTime
+  zakatDueDate          DateTime
+  preferredPaymentMonth Int?
+  notes                 String?
+  isActive              Boolean                @default(true)
+  deletedAt             DateTime?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments  ZakatPayment[]
+  revisions ZakatAssetRevision[]
+
+  @@index([userId, isActive])
+  @@index([assetType])
+  @@index([purchaseDate])
+  @@index([zakatDueDate])
+}
+
+model ZakatPayment {
+  id          String   @id @default(cuid())
+  userId      String
+  assetId     String
+  amount      Decimal  @db.Decimal(18, 2)
+  currencyCode String
+  paymentDate DateTime
+  note        String?
+  baseAmount  Decimal?  @db.Decimal(18, 2)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  asset  ZakatAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@index([userId, paymentDate])
+  @@index([assetId, paymentDate])
+}
+
+model ZakatAssetRevision {
+  id        String                   @id @default(cuid())
+  userId    String
+  assetId   String
+  action    ZakatAssetRevisionAction
+  summary   String?
+  snapshot  Json
+  createdAt DateTime                 @default(now())
+
+  user  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  asset  ZakatAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([assetId, createdAt])
 }

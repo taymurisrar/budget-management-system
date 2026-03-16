@@ -8,6 +8,7 @@ import {
   ArrowRightLeft,
   Boxes,
   CircleDollarSign,
+  Gem,
   CreditCard,
   LayoutDashboard,
   LogOut,
@@ -23,6 +24,7 @@ const navItems = [
   { label: "Transactions", href: "/transactions", icon: ArrowRightLeft, hint: "Activity" },
   { label: "Inventory", href: "/inventory", icon: Boxes, hint: "Stock" },
   { label: "Goals", href: "/goals", icon: Target, hint: "Targets" },
+  { label: "Zakat", href: "/zakat", icon: Gem, hint: "Due" },
   { label: "Settings", href: "/settings", icon: Settings, hint: "Controls" },
 ];
 

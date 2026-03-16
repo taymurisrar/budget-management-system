@@ -14,13 +14,11 @@ import {
   type CreateTransactionFormValues,
   type CreateTransactionInput,
 } from "@/features/transactions/validations/transaction.schema";
-import TransactionOptionPicker, {
-  type PickerOption,
-} from "@/features/transactions/components/transaction-option-picker";
+import  {TransactionOptionPicker} from "@/features/transactions/icons/transaction-option-picker";
 import {
   getAccountIcon,
   getTransactionCategoryIcon,
-} from "@/features/transactions/transaction-option-icons";
+} from "@/features/transactions/icons/transaction-option-icons";
 import {
   formatDateTimeLocalInput,
   formatTagInput,
@@ -87,7 +85,7 @@ type ExchangeRateResponse = {
 function toPickerOptions(
   items: AccountOption[] | CategoryOption[] | SubcategoryOption[],
   kind: "account" | "category" | "subcategory"
-): PickerOption[] {
+) {
   if (kind === "account") {
     return (items as AccountOption[]).map((account) => ({
       id: account.id,
@@ -378,7 +376,7 @@ export default function CreateTransactionForm({
     "account"
   );
   const categoryOptions = toPickerOptions(filteredCategories, "category");
-  const subcategoryOptions: PickerOption[] = [
+  const subcategoryOptions = [
     {
       id: "",
       label: "No subcategory",

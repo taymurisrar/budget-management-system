@@ -8,7 +8,7 @@ import LocalizedDateText from "@/components/localized-date-text";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonClassName } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { getAccountIcon, getTransactionCategoryIcon } from "@/features/transactions/transaction-option-icons";
+import { getAccountIcon, getTransactionCategoryIcon } from "@/features/transactions/icons/transaction-option-icons";
 
 type TransactionListItem = {
   id: string;
